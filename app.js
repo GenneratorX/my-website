@@ -1,17 +1,27 @@
 const express = require('express');
 const exhb = require('express-handlebars');
 const bodyParser = require('body-parser');
+const crypto = require('crypto');
+
 const auth = require('./app/auth');
 
 const app = express();
 const port = 8000;
 
 app.engine('handlebars', exhb());
-
 app.set('view engine', 'handlebars');
-app.disable('x-powered-by');
+
+app.set('x-powered-by', false);
+app.set('etag', false);
+
 app.use(bodyParser.urlencoded({extended: true}));
 
+app.use(function(req, res, next) {
+  const nonce = crypto.randomBytes(16).toString('base64');
+  app.locals.nonce = nonce;
+  res.header('Content-Security-Policy', `default-src 'none'; script-src 'strict-dynamic' 'nonce-${nonce}' https:; img-src 'self'; connect-src 'self'; style-src 'self' 'nonce-${nonce}'; font-src 'self'; object-src 'none'; media-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; manifest-src 'self'; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; report-to default`);
+  next();
+});
 
 app.get('/', function(req, res) {
   res.render('index');
@@ -23,6 +33,10 @@ app.get('/filme', function(req, res) {
 
 app.get('/muzica', function(req, res) {
   res.render('muzica');
+});
+
+app.get('/neg', function(req, res) {
+  res.render('asdsa');
 });
 
 app.get('/partajare', function(req, res) {
