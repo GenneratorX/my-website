@@ -1,0 +1,158 @@
+@font-face {
+	src: local('arial');
+	font-family: arial;
+	font-size: 16px;
+	line-height: 1.6;
+	letter-spacing: .5px;
+	word-spacing: -1.95px;
+}
+
+@font-face {
+	font-family: 'Raleway';
+	font-style: normal;
+	font-display: swap;
+	font-weight: 200;
+	src: local('Raleway ExtraLight'), local('Raleway-ExtraLight'), url(/fonts/f1.woff2) format('woff2');
+}
+
+@font-face {
+	font-family: 'Raleway';
+	font-style: normal;
+	font-display: swap;
+	font-weight: 700;
+	src: local('Raleway Bold'), local('Raleway-Bold'), url(/fonts/f2.woff2) format('woff2');
+}
+
+html,
+body {
+	height: 100%;
+	background-color: #232323;
+	font-family: 'Raleway', arial;
+	margin: 0;
+	padding: 0;
+}
+
+.err {
+	color: #fff;
+	height: 100%;
+}
+
+div.content {
+	display: flex;
+	padding-top: 55px;
+	color: #fff;
+	min-height: 100%;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+div.auth {
+	display: inline-block;
+	margin-top: 2%;
+	font-size: 18px;
+}
+
+a.auth {
+	margin-right: 5px;
+	margin-left: 5px;
+	color: #fff;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+a.auth:hover {
+	text-decoration: underline;
+}
+
+.ribbon {
+	height: auto;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	background-color: #363636;
+}
+
+a.button {
+	display: inline-table;
+	background: #363636;
+	padding: 15px;
+	color: #fff;
+	font-weight: 700;
+	text-decoration: none;
+	text-align: center;
+	width: 5%;
+}
+
+a.selected, a:hover {
+	background: #232323;
+}
+
+a.login {
+	float: right;
+}
+
+input.login {
+	display:block;
+	border-radius:15px;
+	border:2px #363636 solid;
+	padding:5px 5px 5px 25px;
+	font-family:'Raleway', arial;
+	font-weight:700;
+	font-size:14px;
+	color:#fff;
+	background:#232323;
+	outline:0;
+	width: 20%;
+	height: 3%;
+	min-width: 225px;
+	min-height: 30px;
+	margin-top: 10px;
+}
+
+input.lRed {
+	border-color:#ff0000;
+}
+
+input.lGreen {
+	border-color:#00ff15;
+}
+
+input.submit {
+	display: table;
+	background: #363636;
+	padding: 15px;
+	color: #fff;
+	font-weight: 700;
+	font-size: 25px;
+	text-decoration: none;
+	text-align: center;
+	margin-top: 2%;
+	border: 0;
+	border-radius: 50%;
+	outline: none;
+}
+
+input:hover[type="submit"] {
+	background: #09776C;
+}
+
+.index {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	width: 100%;
+	font-weight: 200;
+	font-size: 30px;
+}
+
+::selection {
+	background: #038e8b;
+}
+
+html {
+	visibility: visible;
+	opacity: 1;
+}
