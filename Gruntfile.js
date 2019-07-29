@@ -1,4 +1,5 @@
 const grunt = require('grunt');
+
 require('google-closure-compiler').grunt(grunt, {
   platform: ['native', 'javascript'],
 });
@@ -8,6 +9,7 @@ grunt.loadNpmTasks('grunt-newer');
 grunt.loadNpmTasks('grunt-contrib-watch');
 grunt.loadNpmTasks('grunt-run');
 
+let f = '';
 
 grunt.initConfig({
   'closure-compiler': {
@@ -21,6 +23,7 @@ grunt.initConfig({
       },
       files: grunt.file.expandMapping(['./staticDev/js/*.js'], './static/', {
         rename: function(destBase, destPath) {
+          f += `${destBase+destPath.substring(12)} `;
           return destBase+destPath.substring(12);
         },
       }),
@@ -35,6 +38,7 @@ grunt.initConfig({
       },
       files: grunt.file.expandMapping(['./staticDev/css/*.css'], './static/', {
         rename: function(destBase, destPath) {
+          f += `${destBase+destPath.substring(12)} `;
           return destBase+destPath.substring(12);
         },
       }),
@@ -76,9 +80,8 @@ grunt.initConfig({
   },
   'run': {
     brotli: {
-      exec: 'node brotlify.js',
+      exec: 'node brotlify.js ' + f,
     },
   },
 });
-
 grunt.registerTask('default', ['closure-compiler', 'node-minify:cssMin', 'node-minify:htmlMin']);
