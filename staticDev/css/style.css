@@ -58,6 +58,7 @@ a.auth {
 	color: #fff;
 	font-weight: 700;
 	text-decoration: none;
+	cursor: pointer;
 }
 
 a.auth:hover {
