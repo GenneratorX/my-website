@@ -15,11 +15,12 @@ app.set('x-powered-by', false);
 app.set('etag', false);
 
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
   const nonce = crypto.randomBytes(16).toString('base64');
   app.locals.nonce = nonce;
-  res.header('Content-Security-Policy', `default-src 'none'; script-src 'strict-dynamic' 'nonce-${nonce}' https:; img-src 'self'; connect-src 'self'; style-src 'self' 'nonce-${nonce}'; font-src 'self'; object-src 'none'; media-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; manifest-src 'self'; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; report-to default`);
+  res.header('Content-Security-Policy', `default-src 'none'; script-src 'self' 'strict-dynamic' 'nonce-${nonce}'; img-src 'self'; connect-src 'self'; style-src 'self' 'nonce-${nonce}'; font-src 'self'; object-src 'none'; media-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; manifest-src 'self'; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; report-to default`);
   next();
 });
 
@@ -70,6 +71,14 @@ app.post('/createUser', function(req, res) {
     });
   } else {
     res.send('Parola sau username-ul nu respectă condițiile de lungime!');
+  }
+});
+
+app.post('/usernameExists', function(req, res) {
+  if (req.body.username.length >= 6 && req.body.username.length <= 40) {
+    auth.usernameExists(req.body.username).then( (f) => {
+      res.send(f);
+    });
   }
 });
 
