@@ -3,6 +3,12 @@ const pool = mariadb.createPool({host: 'localhost', user: 'web', password: 'Kapp
 
 module.exports = {query};
 
+/**
+ * Querries the database
+ * @param {string} qry Query string
+ * @param {string[]} param Query parameters
+ * @return {Promise<any>} Query result
+ */
 async function query(qry, param=[]) {
   let conn;
   try {

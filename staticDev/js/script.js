@@ -3,10 +3,18 @@ link.rel='stylesheet',
 link.href='/css/style.css',
 document.head.appendChild(link);
 
-window.addEventListener('DOMContentLoaded', function() {
+if (document.readyState !== 'loading') {
+  selectButton();
+} else {
+  document.addEventListener('DOMContentLoaded', function() {
+    selectButton();
+  });
+}
+
+function selectButton() {
   const b = window.location.pathname.substring(1);
   if (document.getElementById(b)) document.getElementById(b).className+=' selected';
-}, false);
+}
 
 function setAttributes(elem, attr) {
   for (const n in attr) {
@@ -15,4 +23,5 @@ function setAttributes(elem, attr) {
     }
   }
 }
+
 window['setAttributes'] = setAttributes;

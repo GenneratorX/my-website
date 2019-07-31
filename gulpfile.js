@@ -15,7 +15,6 @@ function jsMin(f) {
         js_output_file: f.substring(13),
         output_wrapper: '(function(){%output%})();',
         jscomp_off: 'checkVars',
-        warning_level: 'VERBOSE',
       }, {
         platform: ['native', 'java', 'javascript'],
       }))
@@ -43,11 +42,9 @@ function htmlMin(f) {
   return gulp.src(f)
       .pipe(htmlmin({
         collapseWhitespace: true,
+        collapseBooleanAttributes: true,
         minifyCSS: true,
         minifyJS: true,
-        removeEmptyElements: false,
-        removeOptionalTags: false,
-        removeAttributeQuotes: true,
         removeRedundantAttributes: true,
         removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
