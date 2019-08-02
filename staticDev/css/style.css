@@ -66,6 +66,7 @@ a.auth:hover {
 }
 
 .ribbon {
+	display: flex;
 	height: auto;
 	width: 100%;
 	position: fixed;
@@ -84,12 +85,12 @@ a.button {
 	width: 5%;
 }
 
-a.selected, a:hover {
+a.selected, a.button:hover {
 	background: #232323;
 }
 
 a.login {
-	float: right;
+	margin: auto 3% auto auto;
 }
 
 input.login {
@@ -118,7 +119,7 @@ input.lGreen {
 	border-color:#09776C;
 }
 
-input.submit {
+input.submitB {
 	display: table;
 	background: #363636;
 	padding: 15px;
@@ -135,6 +136,15 @@ input.submit {
 
 input:hover[type="submit"] {
 	background: #09776C;
+}
+
+.inline {
+	display: inline-block;
+	margin: 0;
+}
+
+.bold {
+	font-weight: 700;
 }
 
 .index {

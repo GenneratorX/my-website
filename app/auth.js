@@ -29,9 +29,9 @@ async function hash(pass) {
  * @return {Promise<boolean>} True if successful, false otherwise
  */
 async function createUser(usr, pass, uType = 1, uActive = 0) {
-  const hPass = await hash(pass);
+  const hPass = hash(pass);
   if (await db.query('SELECT COUNT(usr) FROM usr WHERE usr = ?;', [usr]) == 0) {
-    await db.query('INSERT INTO usr VALUES (NULL, ?, ?, ?, ?, DEFAULT, ?);', [usr, hPass, uType, new Date(), uActive]);
+    await db.query('INSERT INTO usr VALUES (NULL, ?, ?, ?, ?, DEFAULT, ?);', [usr, await hPass, uType, new Date(), uActive]);
     return true;
   }
   return false;
@@ -54,6 +54,7 @@ async function loginUser(usr, pass) {
   }
   return 2;
 }
+
 /**
  * Checks if user exists
  * @param {string} usr Username

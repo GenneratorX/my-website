@@ -1,9 +1,12 @@
 const express = require('express');
 const exhb = require('express-handlebars');
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
 
 const auth = require('./app/auth');
+const db = require('./app/db');
 
 const app = express();
 const port = 8000;
@@ -13,9 +16,29 @@ app.set('view engine', 'handlebars');
 
 app.set('x-powered-by', false);
 app.set('etag', false);
+app.set('trust proxy', '127.0.0.1');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+
+app.use(session({
+  name: '__Host-sessionID',
+  secret: 'DWhg/ea3LBnlXVd/4dC6+rU05kIqemLHFPCg2',
+  saveUninitialized: true,
+  resave: false,
+  cookie: {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    maxAge: null,
+    sameSite: true,
+  },
+  store: new SQLiteStore({
+    table: 'sessions',
+    db: 'sessions.db',
+    dir: './app/',
+  }),
+}));
 
 app.use(function(req, res, next) {
   const nonce = crypto.randomBytes(16).toString('base64');
@@ -51,7 +74,18 @@ app.get('/login', function(req, res) {
 app.post('/loginUser', function(req, res) {
   auth.loginUser(req.body.username, req.body.password).then( (f) => {
     if (f==0) {
-      res.send('Este bun!');
+      db.query('SELECT BINARY usr FROM usr WHERE usr = ?;', [req.body.username]).then( (f) => {
+        currDate = new Date();
+        let greetingMessage = 'Neața';
+        if (currDate.getHours() >= 8 && currDate.getHours() < 18) {
+          greetingMessage = 'Bună ziua';
+        } else {
+          if (currDate.getHours() >= 18 && currDate.getHours() <= 23) {
+            greetingMessage = 'Bună seara';
+          }
+        }
+        res.render('loginS', {greetingMessage: greetingMessage, userName: f});
+      });
     } else if (f==1) {
       res.send('Este dezactivat!');
     } else {
