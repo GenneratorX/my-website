@@ -1,3 +1,5 @@
+const submitForm = document.getElementById('auth');
+
 const createAcc = document.getElementById('createAcc');
 const forgotPass = document.getElementById('forgotPass');
 const lText = document.getElementById('lText');
@@ -9,21 +11,24 @@ const green = 'login lGreen';
 const red = 'login lRed';
 const gray = 'login';
 
+let lastUsername = '';
+let repeatBox;
+
 forgotPass.onclick = function() {
   console.log('Asta e! ^_^');
 };
 
 createAcc.onclick = function() {
-  if (!document.getElementById('repeatPassword')) {
+  if (!repeatBox) {
     const repeatPass = document.createElement('input');
+    setAttributes(repeatPass, {'class': 'login', 'id': 'repeatPassword', 'autocomplete': 'new-password', 'maxlength': 100, 'placeholder': 'Repetă parola', 'type': 'password'});
     repeatPass.required = true;
-    setAttributes(repeatPass, {'class': 'login', 'maxlength': 100, 'placeholder': 'Repetă parola', 'type': 'password', 'id': 'repeatPassword'});
+    setAttributes(passBox, {'autocomplete': 'new-password'});
 
-    const form = document.getElementById('auth');
-    setAttributes(form, {'action': 'createUser'});
-    form.insertBefore(repeatPass, document.getElementById('submit'));
+    setAttributes(submitForm, {'action': 'createUser'});
+    submitForm.insertBefore(repeatPass, document.getElementById('submitB'));
 
-    const repeatBox = document.getElementById('repeatPassword');
+    repeatBox = document.getElementById('repeatPassword');
     repeatBox.onkeyup = function() {
       if (repeatBox.value.length >= 8 && repeatBox.value.length <= 100) {
         if (passBox.value == repeatBox.value) {
@@ -46,9 +51,11 @@ createAcc.onclick = function() {
 
     userBox.onblur();
   } else {
-    lText.parentNode.removeChild(document.getElementById('repeatPassword'));
+    lText.parentNode.removeChild(repeatBox);
+    repeatBox = undefined;
 
-    setAttributes(document.getElementById('auth'), {'action': 'loginUser'});
+    setAttributes(passBox, {'autocomplete': 'current-password'});
+    setAttributes(submitForm, {'action': 'loginUser'});
 
     lText.textContent = 'Login';
     createAcc.textContent = 'Nu ai cont? Creează unul!';
@@ -72,21 +79,26 @@ userBox.onkeyup = function() {
 
 userBox.onblur = function() {
   if (userBox.value.length >= 6 && userBox.value.length <= 40) {
-    if (document.getElementById('repeatPassword')) {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/usernameExists', true);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.send(JSON.stringify({
-        username: userBox.value,
-      }));
-      xhr.onload = function(e) {
-        if (this.response == 'true') {
-          userBox.className = red;
-        } else {
-          userBox.className = green;
-        }
-      };
-      userBox.className = green;
+    if (repeatBox) {
+      if (lastUsername != userBox.value) {
+        lastUsername = userBox.value;
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/usernameExists', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({
+          username: userBox.value,
+        }));
+        xhr.onload = function() {
+          if (this.response == 'true') {
+            userBox.className = red;
+          } else {
+            userBox.className = green;
+          }
+        };
+        userBox.className = green;
+      } else {
+        userBox.className = red;
+      }
     } else {
       userBox.className = green;
     }
@@ -101,8 +113,7 @@ userBox.onblur = function() {
 
 passBox.onkeyup = function() {
   if (passBox.value.length >= 8 && passBox.value.length <= 100) {
-    if (document.getElementById('repeatPassword')) {
-      const repeatBox = document.getElementById('repeatPassword');
+    if (repeatBox) {
       if (passBox.value == repeatBox.value) {
         passBox.className = green;
       }
@@ -121,8 +132,7 @@ passBox.onkeyup = function() {
 
 passBox.onblur = function() {
   if (passBox.value.length >= 8 && passBox.value.length <= 100) {
-    if (document.getElementById('repeatPassword')) {
-      const repeatBox = document.getElementById('repeatPassword');
+    if (repeatBox) {
       if (passBox.value == repeatBox.value) {
         passBox.className = green;
       }
@@ -138,21 +148,21 @@ passBox.onblur = function() {
   }
 };
 
-document.getElementById('auth').onsubmit = function(e) {
+submitForm.onsubmit = function(e) {
   if (userBox.value.length >= 6 && userBox.value.length <= 40 && passBox.value.length >= 8 && passBox.value.length <= 100) {
-    if (document.getElementById('repeatPassword')) {
-      const repeatBox = document.getElementById('repeatPassword');
+    if (repeatBox) {
       if (passBox.value == repeatBox.value) {
-        console.log('totu e bine!');
+        console.log('Parolele corespund');
+        submitForm.submit();
       } else {
-        console.log('parolele nu corespund!');
+        console.log('Parolele nu corespund!');
       }
     } else {
-      console.log('totu e bine!');
-      e.submit();
+      console.log('Username si parola corecte!');
+      submitForm.submit();
     }
   } else {
-    console.log('username sau parola nu is destul de lungi!');
+    console.log('Username si parola nu respecta conditiile de lungime!');
   }
   e.preventDefault();
 };
