@@ -1,5 +1,5 @@
 const mariadb = require('mariadb');
-const pool = mariadb.createPool({host: 'localhost', user: 'web', password: 'KappaPride*123', database: 'website', connectionLimit: 5, rowsAsArray: true});
+const pool = mariadb.createPool({host: 'localhost', user: 'gennerator', socketPath: '/var/run/mysqld/mysqld.sock', database: 'website', connectionLimit: 5, rowsAsArray: true});
 
 module.exports = {query};
 
