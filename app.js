@@ -24,7 +24,7 @@ app.use(bodyParser.json());
 
 app.use(session({
   name: '__Host-sessionID',
-  secret: 'Z8e20I8SbO6f1akSCYWjW5vLQHjq%2F%2FXVGsGrRtgtYXPSZbrlAy9FxljleIn61A4S',
+  secret: process.env.COOKIE_SECRET,
   saveUninitialized: false,
   resave: false,
   cookie: {
