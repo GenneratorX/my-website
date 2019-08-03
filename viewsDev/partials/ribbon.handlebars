@@ -1,3 +1,8 @@
 <nav class=ribbon>
-    <a id=filme class=button href=filme>Filme</a><a id=muzica class=button href=muzica>Muzică</a><a id=partajare class=button href=partajare>Partajare</a><a class="auth login" href=login>Login</a>
+    <a id=filme class=button href=filme>Filme</a><a id=muzica class=button href=muzica>Muzică</a><a id=partajare class=button href=partajare>Partajare</a>
+    {{# if userName}}
+    <span class=right>{{{greetingMessage}}},</span><a class="auth mr" href=logOut> {{userName}}!</a>
+    {{else}}
+    <a class="auth login" href=login>Login</a>
+    {{/if}}
 </nav>

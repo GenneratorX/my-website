@@ -7,6 +7,7 @@ const crypto = require('crypto');
 
 const auth = require('./app/auth');
 const db = require('./app/db');
+const util = require('./app/util');
 
 const app = express();
 const port = 8000;
@@ -24,7 +25,7 @@ app.use(bodyParser.json());
 app.use(session({
   name: '__Host-sessionID',
   secret: 'DWhg/ea3LBnlXVd/4dC6+rU05kIqemLHFPCg2',
-  saveUninitialized: true,
+  saveUninitialized: false,
   resave: false,
   cookie: {
     path: '/',
@@ -38,12 +39,18 @@ app.use(session({
     db: 'sessions.db',
     dir: './app/',
   }),
+  genid: function(req) {
+    return crypto.randomBytes(128).toString('base64');
+  },
 }));
 
 app.use(function(req, res, next) {
-  const nonce = crypto.randomBytes(16).toString('base64');
-  app.locals.nonce = nonce;
-  res.header('Content-Security-Policy', `default-src 'none'; script-src 'self' 'strict-dynamic' 'nonce-${nonce}'; img-src 'self'; connect-src 'self'; style-src 'self' 'nonce-${nonce}'; font-src 'self'; object-src 'none'; media-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; manifest-src 'self'; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; report-to default`);
+  res.locals.nonce = crypto.randomBytes(16).toString('base64');
+  res.header('Content-Security-Policy', `default-src 'none'; script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}'; img-src 'self'; connect-src 'self'; style-src 'self' 'nonce-${res.locals.nonce}'; font-src 'self'; object-src 'none'; media-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; manifest-src 'self'; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; report-to default`);
+
+  res.locals.userName = req.session.username;
+  res.locals.greetingMessage = util.greetingMessage();
+
   next();
 });
 
@@ -59,10 +66,6 @@ app.get('/muzica', function(req, res) {
   res.render('muzica');
 });
 
-app.get('/neg', function(req, res) {
-  res.render('asdsa');
-});
-
 app.get('/partajare', function(req, res) {
   res.render('partajare');
 });
@@ -75,16 +78,9 @@ app.post('/loginUser', function(req, res) {
   auth.loginUser(req.body.username, req.body.password).then( (f) => {
     if (f==0) {
       db.query('SELECT BINARY usr FROM usr WHERE usr = ?;', [req.body.username]).then( (f) => {
-        currDate = new Date();
-        let greetingMessage = 'Neața';
-        if (currDate.getHours() >= 8 && currDate.getHours() < 18) {
-          greetingMessage = 'Bună ziua';
-        } else {
-          if (currDate.getHours() >= 18 && currDate.getHours() <= 23) {
-            greetingMessage = 'Bună seara';
-          }
-        }
-        res.render('loginS', {greetingMessage: greetingMessage, userName: f});
+        res.locals.userName = f.toString();
+        req.session.username = res.locals.userName;
+        res.render('loginS');
       });
     } else if (f==1) {
       res.send('Este dezactivat!');
@@ -105,6 +101,20 @@ app.post('/createUser', function(req, res) {
     });
   } else {
     res.send('Parola sau username-ul nu respectă condițiile de lungime!');
+  }
+});
+
+app.get('/logOut', function(req, res) {
+  if (req.session) {
+    req.session.destroy();
+    res.clearCookie('__Host-sessionID', {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      maxAge: null,
+      sameSite: true,
+    });
+    res.redirect('/');
   }
 });
 
