@@ -24,7 +24,7 @@ app.use(bodyParser.json());
 
 app.use(session({
   name: '__Host-sessionID',
-  secret: 'DWhg/ea3LBnlXVd/4dC6+rU05kIqemLHFPCg2',
+  secret: 'Z8e20I8SbO6f1akSCYWjW5vLQHjq%2F%2FXVGsGrRtgtYXPSZbrlAy9FxljleIn61A4S',
   saveUninitialized: false,
   resave: false,
   cookie: {
@@ -75,32 +75,30 @@ app.get('/login', function(req, res) {
 });
 
 app.post('/loginUser', function(req, res) {
-  auth.loginUser(req.body.username, req.body.password).then( (f) => {
-    if (f==0) {
-      db.query('SELECT BINARY usr FROM usr WHERE usr = ?;', [req.body.username]).then( (f) => {
-        res.locals.userName = f.toString();
-        req.session.username = res.locals.userName;
-        res.render('loginS');
-      });
-    } else if (f==1) {
-      res.send('Este dezactivat!');
-    } else {
-      res.send('Nu este bun!');
-    }
-  });
-});
-
-app.post('/createUser', function(req, res) {
-  if (req.body.username.length >= 6 && req.body.username.length <= 40 && req.body.password.length >= 8 && req.body.password.length <= 100) {
-    auth.createUser(req.body.username, req.body.password).then( (f) => {
+  if (req.body.username && req.body.password) {
+    auth.loginUser(req.body.username, req.body.password).then( (f) => {
       if (f) {
-        res.send('Cont creat cu succes!');
+        db.query('SELECT BINARY usr FROM usr WHERE usr = ?;', [req.body.username]).then( (f) => {
+          res.locals.userName = f.toString();
+          req.session.username = res.locals.userName;
+          res.render('loginS');
+        });
       } else {
-        res.send('Contul de utilizator există deja!');
+        res.send(f);
       }
     });
   } else {
-    res.send('Parola sau username-ul nu respectă condițiile de lungime!');
+    res.send('Cererea nu este corectă! Ieși acas\'!');
+  }
+});
+
+app.post('/createUser', function(req, res) {
+  if (req.body.username && req.body.password) {
+    auth.createUser(req.body.username, req.body.password).then( (f) => {
+      res.send(f);
+    });
+  } else {
+    res.send('Cererea nu este corectă! Ieși acas\'!');
   }
 });
 
@@ -119,10 +117,12 @@ app.get('/logOut', function(req, res) {
 });
 
 app.post('/usernameExists', function(req, res) {
-  if (req.body.username.length >= 6 && req.body.username.length <= 40) {
+  if (req.body.username) {
     auth.usernameExists(req.body.username).then( (f) => {
       res.send(f);
     });
+  } else {
+    res.send('Cererea nu este corectă! Ieși acas\'!');
   }
 });
 

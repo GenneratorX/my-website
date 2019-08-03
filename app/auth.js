@@ -26,33 +26,40 @@ async function hash(pass) {
  * @param {string} pass Password
  * @param {number} uType Account type [0|1]
  * @param {number} uActive Enabled/Disabled account [0|1]
- * @return {Promise<boolean>} True if successful, false otherwise
+ * @return {Promise<boolean|string>} True if successful, error string otherwise
  */
 async function createUser(usr, pass, uType = 1, uActive = 0) {
-  const hPass = hash(pass);
-  if (await db.query('SELECT COUNT(usr) FROM usr WHERE usr = ?;', [usr]) == 0) {
-    await db.query('INSERT INTO usr VALUES (NULL, ?, ?, ?, ?, DEFAULT, ?);', [usr, await hPass, uType, new Date(), uActive]);
-    return true;
+  if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100) {
+    if (! await usernameExists(usr)) {
+      await db.query('INSERT INTO usr VALUES (NULL, ?, ?, ?, ?, DEFAULT, ?);', [usr, await hash(pass), uType, new Date(), uActive]);
+      return true;
+    } else {
+      return 'USER_EXISTS';
+    }
   }
-  return false;
+  return 'USER_PASSWORD_NOT_VALID';
 }
 
 /**
  * Authenticates user
  * @param {string} usr Username
  * @param {string} pass Password
- * @return {Promise<number>} Success(0) / Disabled(1) / Failed(2)
+ * @return {Promise<boolean|string>} True if successful, error string otherwise
  */
 async function loginUser(usr, pass) {
-  const u = await db.query('SELECT pass FROM usr WHERE usr = ?;', [usr]);
-  if (u[0] && await argon.verify(u.toString(), pass)) {
-    if (await db.query('SELECT COUNT(usr) FROM usr WHERE usr = ? AND active = 1;', [usr]) == 1) {
-      return 0;
+  if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100) {
+    const u = await db.query('SELECT pass FROM usr WHERE usr = ?;', [usr]);
+    if (u[0] && await argon.verify(u.toString(), pass)) {
+      if (await db.query('SELECT COUNT(usr) FROM usr WHERE usr = ? AND active = 1;', [usr]) == 1) {
+        return true;
+      } else {
+        return 'USER_DISABLED';
+      }
     } else {
-      return 1;
+      return 'USER_PASSWORD_NOT_FOUND';
     }
   }
-  return 2;
+  return 'USER_PASSWORD_NOT_VALID';
 }
 
 /**
