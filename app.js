@@ -38,6 +38,7 @@ app.use(session({
     table: 'sessions',
     db: 'sessions.db',
     dir: './app/',
+    concurrentDB: true,
   }),
   genid: function(req) {
     return crypto.randomBytes(128).toString('base64');
@@ -74,14 +75,28 @@ app.get('/login', function(req, res) {
   res.render('login');
 });
 
+app.get('/logOut', function(req, res) {
+  if (req.session) {
+    req.session.destroy();
+    res.clearCookie('__Host-sessionID', {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      maxAge: null,
+      sameSite: true,
+    });
+    res.redirect('/');
+  }
+});
+
 app.post('/loginUser', function(req, res) {
   if (req.body.username && req.body.password) {
     auth.loginUser(req.body.username, req.body.password).then( (f) => {
-      if (f) {
+      if (f == true) {
         db.query('SELECT BINARY usr FROM usr WHERE usr = ?;', [req.body.username]).then( (f) => {
           res.locals.userName = f.toString();
           req.session.username = res.locals.userName;
-          res.render('loginS');
+          res.render('loginS', {layout: false});
         });
       } else {
         res.send(f);
@@ -99,20 +114,6 @@ app.post('/createUser', function(req, res) {
     });
   } else {
     res.send('Cererea nu este corectă! Ieși acas\'!');
-  }
-});
-
-app.get('/logOut', function(req, res) {
-  if (req.session) {
-    req.session.destroy();
-    res.clearCookie('__Host-sessionID', {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      maxAge: null,
-      sameSite: true,
-    });
-    res.redirect('/');
   }
 });
 

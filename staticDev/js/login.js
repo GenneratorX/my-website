@@ -11,8 +11,8 @@ const green = 'login lGreen';
 const red = 'login lRed';
 const gray = 'login';
 
-let lastUsername = '';
 let repeatBox;
+
 
 forgotPass.onclick = function() {
   console.log('Asta e! ^_^');
@@ -30,19 +30,14 @@ createAcc.onclick = function() {
 
     repeatBox = document.getElementById('repeatPassword');
     repeatBox.onkeyup = function() {
-      if (repeatBox.value.length >= 8 && repeatBox.value.length <= 100) {
+      if (passBox.className == green) {
         if (passBox.value == repeatBox.value) {
           repeatBox.className = green;
         } else {
           repeatBox.className = red;
         }
-        passBox.onblur();
       } else {
-        if (repeatBox.value.length == 0) {
-          repeatBox.className = gray;
-        } else {
-          repeatBox.className = red;
-        }
+        repeatBox.className = gray;
       }
     };
 
@@ -51,118 +46,106 @@ createAcc.onclick = function() {
 
     userBox.onblur();
   } else {
-    lText.parentNode.removeChild(repeatBox);
-    repeatBox = undefined;
-
-    setAttributes(passBox, {'autocomplete': 'current-password'});
-    setAttributes(submitForm, {'action': 'loginUser'});
-
-    lText.textContent = 'Login';
-    createAcc.textContent = 'Nu ai cont? Creează unul!';
-
-    userBox.onblur();
-    passBox.onblur();
+    removeRepeatBox();
   }
 };
+
+function removeRepeatBox() {
+  lText.parentNode.removeChild(repeatBox);
+  repeatBox = undefined;
+
+  setAttributes(passBox, {'autocomplete': 'current-password'});
+  setAttributes(submitForm, {'action': 'loginUser'});
+
+  lText.textContent = 'Login';
+  createAcc.textContent = 'Nu ai cont? Creează unul!';
+
+  userBox.onblur();
+}
 
 userBox.onkeyup = function() {
   if (userBox.value.length >= 6 && userBox.value.length <= 40) {
     userBox.className = green;
   } else {
-    if (userBox.value.length == 0) {
-      userBox.className = gray;
-    } else {
+    if (userBox.value.length != 0) {
       userBox.className = red;
+    } else {
+      userBox.className = gray;
     }
   }
 };
 
 userBox.onblur = function() {
-  if (userBox.value.length >= 6 && userBox.value.length <= 40) {
-    if (repeatBox) {
-      if (lastUsername != userBox.value) {
-        lastUsername = userBox.value;
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/usernameExists', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify({
-          username: userBox.value,
-        }));
-        xhr.onload = function() {
-          if (this.response == 'true') {
-            userBox.className = red;
-          } else {
-            userBox.className = green;
-          }
-        };
-        userBox.className = green;
-      } else {
-        userBox.className = red;
-      }
-    } else {
-      userBox.className = green;
+  if (repeatBox) {
+    if (userBox.className == green) {
+      xhr('POST', '/usernameExists', {username: userBox.value}, function(r) {
+        if (r == 'true') {
+          userBox.className = red;
+        }
+      });
     }
   } else {
-    if (userBox.value.length == 0) {
-      userBox.className = gray;
-    } else {
-      userBox.className = red;
-    }
+    userBox.onkeyup();
   }
 };
 
 passBox.onkeyup = function() {
   if (passBox.value.length >= 8 && passBox.value.length <= 100) {
+    passBox.className = green;
     if (repeatBox) {
-      if (passBox.value == repeatBox.value) {
-        passBox.className = green;
-      }
       repeatBox.onkeyup(null);
-    } else {
-      passBox.className = green;
     }
   } else {
-    if (passBox.value.length == 0) {
-      passBox.className = gray;
-    } else {
+    if (passBox.value.length != 0) {
       passBox.className = red;
-    }
-  }
-};
-
-passBox.onblur = function() {
-  if (passBox.value.length >= 8 && passBox.value.length <= 100) {
-    if (repeatBox) {
-      if (passBox.value == repeatBox.value) {
-        passBox.className = green;
+    } else {
+      passBox.className = gray;
+      if (repeatBox) {
+        repeatBox.onkeyup(null);
       }
-    } else {
-      passBox.className = green;
-    }
-  } else {
-    if (passBox.value.length == 0) {
-      passBox.className = gray;
-    } else {
-      passBox.className = red;
     }
   }
 };
 
-submitForm.onsubmit = function(e) {
-  if (userBox.value.length >= 6 && userBox.value.length <= 40 && passBox.value.length >= 8 && passBox.value.length <= 100) {
-    if (repeatBox) {
-      if (passBox.value == repeatBox.value) {
-        console.log('Parolele corespund');
-        submitForm.submit();
+submitForm.addEventListener('submit', function(e) {
+  if (userBox.value.length >= 6 && userBox.value.length <= 40) {
+    if (passBox.value.length >= 8 && passBox.value.length <= 100) {
+      if (repeatBox) {
+        if (passBox.value == repeatBox.value) {
+          xhr('POST', '/createUser', {username: userBox.value, password: passBox.value}, function(r) {
+            if (r == 'true') {
+              removeRepeatBox();
+              submitForm.reset();
+              userBox.className = gray;
+              passBox.className = gray;
+              snackbar('Cont creat cu succes!');
+            } else {
+              snackbar('Numele de utilizator există deja!', 2);
+            }
+          });
+        } else {
+          snackbar('Parolele trebuie să fie identice!', 2);
+        }
       } else {
-        console.log('Parolele nu corespund!');
+        xhr('POST', '/loginUser', {username: userBox.value, password: passBox.value}, function(r) {
+          switch (r) {
+            case 'USER_DISABLED': snackbar('Contul este dezactivat! Spunei lui Gennerator și rezolvă el.', 3); break;
+            case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
+            default: {
+              document.body.innerHTML = r;
+              setTimeout(function() {
+                window.location.href = '/';
+              }, 3000);
+              break;
+            }
+          }
+        });
       }
     } else {
-      console.log('Username si parola corecte!');
-      submitForm.submit();
+      snackbar('Parola trebuie să conțină minimum 8 caractere!', 2);
     }
   } else {
-    console.log('Username si parola nu respecta conditiile de lungime!');
+    snackbar('Numele de utilizator trebuie să conțină minimum 6 caractere!', 2);
   }
   e.preventDefault();
-};
+});

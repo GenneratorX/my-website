@@ -126,7 +126,7 @@ input.login {
 }
 
 input.lRed {
-	border-color:#ff0000;
+	border-color:#D3312E;
 }
 
 input.lGreen {
@@ -148,6 +148,12 @@ input.submitB {
 	outline: none;
 }
 
+p.greenMsg {
+	font-size: 25px;
+	margin: 2% 0 0 0;
+	color: #09776C;
+}
+
 input:hover[type="submit"] {
 	background: #09776C;
 }
@@ -165,8 +171,58 @@ input:hover[type="submit"] {
 	margin-right: 1%;
 }
 
+#snackbar {
+	visibility: hidden;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: fixed;
+	right: 0;
+	left: 0;
+	bottom: 30px;
+}
+
+#snackC {
+	max-width: 80%;
+	max-height: 80%;
+	padding: 20px;
+	color: white;
+	border-radius: 2px;
+}
+
+#snackbar.show {
+	visibility: visible;
+	animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+#snackC.green {
+	background: #09776C;
+}
+
+#snackC.orange {
+	background: #ED9C27;
+}
+
+#snackC.red {
+	background: #D3312E;
+}
+
+#snackC.blue {
+	background: #3098B8;
+}
+
+@keyframes fadein {
+	from {bottom: 0; opacity: 0;}
+	to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadeout {
+	from {bottom: 30px; opacity: 1;}
+	to {bottom: 0; opacity: 0;}
+}
+
 ::selection {
-	background: #038e8b;
+	background: #09776C;
 }
 
 html {
