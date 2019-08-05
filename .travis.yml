@@ -1,0 +1,6 @@
+dist: bionic
+before_install:
+  - "npm install -g npm"
+language: node_js
+node_js:
+  - "12"
