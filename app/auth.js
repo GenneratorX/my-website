@@ -31,7 +31,7 @@ async function hash(pass) {
 async function createUser(usr, pass, uType = 1, uActive = 0) {
   if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100) {
     if (! await usernameExists(usr)) {
-      await db.query('INSERT INTO usr VALUES (NULL, ?, ?, ?, ?, DEFAULT, ?);', [usr, await hash(pass), uType, new Date(), uActive]);
+      await db.query('INSERT INTO users VALUES (DEFAULT, $1, $2, $3, $4, DEFAULT, $5);', [usr, await hash(pass), uType, uActive, new Date()], 'createUser');
       return true;
     } else {
       return 'USER_EXISTS';
@@ -48,10 +48,14 @@ async function createUser(usr, pass, uType = 1, uActive = 0) {
  */
 async function loginUser(usr, pass) {
   if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100) {
-    const u = await db.query('SELECT pass FROM usr WHERE usr = ?;', [usr]);
-    if (u[0] && await argon.verify(u.toString(), pass)) {
-      if (await db.query('SELECT COUNT(usr) FROM usr WHERE usr = ? AND active = 1;', [usr]) == 1) {
-        return true;
+    const u = await db.query('SELECT password, active FROM users WHERE LOWER(username) = LOWER($1);', [usr], 'loginUser');
+    if (u[0]) {
+      if (u[0][1] == true) {
+        if (await argon.verify(u[0][0], pass)) {
+          return true;
+        } else {
+          return 'USER_PASSWORD_NOT_FOUND';
+        }
       } else {
         return 'USER_DISABLED';
       }
@@ -68,7 +72,7 @@ async function loginUser(usr, pass) {
  * @return {Promise<boolean>} True if exists, false otherwise
  */
 async function usernameExists(usr) {
-  if (await db.query('SELECT COUNT(usr) FROM usr WHERE usr = ?;', [usr]) == 1) {
+  if (await db.query('SELECT COUNT(username) FROM users WHERE LOWER(username) = LOWER($1);', [usr]) == 1, 'usernameExists') {
     return true;
   }
   return false;

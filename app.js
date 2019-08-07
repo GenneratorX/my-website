@@ -105,7 +105,7 @@ app.post('/loginUser', function(req, res) {
   if (req.body.username && req.body.password) {
     auth.loginUser(req.body.username, req.body.password).then( (f) => {
       if (f == true) {
-        db.query('SELECT BINARY usr FROM usr WHERE usr = ?;', [req.body.username]).then( (f) => {
+        db.query('SELECT username FROM users WHERE LOWER(username) = LOWER($1);', [req.body.username]).then( (f) => {
           res.locals.userName = f.toString();
           req.session.username = res.locals.userName;
           res.render('loginS', {layout: false});

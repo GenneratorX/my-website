@@ -1,5 +1,5 @@
-const mariadb = require('mariadb');
-const pool = mariadb.createPool({host: 'localhost', user: 'gennerator', socketPath: '/var/run/mysqld/mysqld.sock', database: 'website', connectionLimit: 5, rowsAsArray: true});
+const pg = require('pg');
+const pool = new pg.Pool({host: '/var/run/postgresql', max: 20});
 
 module.exports = {query};
 
@@ -7,17 +7,23 @@ module.exports = {query};
  * Querries the database
  * @param {string} qry Query string
  * @param {string[]} param Query parameters
+ * @param {string} qname Query name
  * @return {Promise<any>} Query result
  */
-async function query(qry, param=[]) {
+async function query(qry, param=[], qname='') {
   let conn;
   try {
-    conn = await pool.getConnection();
-    const rows = await conn.query(qry, param);
-    return rows;
+    conn = await pool.connect();
+    const res = await conn.query({
+      text: qry,
+      values: param,
+      rowMode: 'array',
+      name: qname,
+    });
+    return res.rows;
   } catch (err) {
     console.log(err);
   } finally {
-    if (conn) conn.end();
+    if (conn) conn.release();
   }
 }
