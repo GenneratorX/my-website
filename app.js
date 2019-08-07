@@ -1,7 +1,7 @@
 const express = require('express');
 const exhb = require('express-handlebars');
 const session = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
+const PgSession = require('connect-pg-simple')(session);
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
 
@@ -34,11 +34,9 @@ app.use(session({
     maxAge: null,
     sameSite: true,
   },
-  store: new SQLiteStore({
-    table: 'sessions',
-    db: 'sessions.db',
-    dir: './app/',
-    concurrentDB: true,
+  store: new PgSession({
+    pool: db.pool,
+    ttl: 43200, // 12 hours
   }),
   genid: function(req) {
     return crypto.randomBytes(128).toString('base64');
