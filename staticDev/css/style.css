@@ -188,6 +188,7 @@ input:hover[type="submit"] {
 	padding: 20px;
 	color: white;
 	border-radius: 2px;
+	white-space: pre-line;
 }
 
 #snackbar.show {

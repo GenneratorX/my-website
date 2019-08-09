@@ -13,9 +13,43 @@ const gray = 'login';
 
 let repeatBox;
 
+function passCheck(str) {
+  let mare = false;
+  let mica = false;
+  let cifra = false;
+  let special = false;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charAt(i);
+    if (mare == true && mica == true && cifra == true && special == true) {
+      return true;
+    } else {
+      if (mare == false && c >= 'A' && c <= 'Z') {
+        mare = true;
+        continue;
+      }
+      if (mica == false && c >= 'a' && c <= 'z') {
+        mica = true;
+        continue;
+      }
+      if (cifra == false && c >= '0' && c <= '9') {
+        cifra = true;
+        continue;
+      }
+      if (special == false && (c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9')) {
+        special = true;
+      }
+    }
+  }
+  if (mare == true && mica == true && cifra == true && special == true) {
+    return true;
+  }
+  return false;
+}
+
+window['passCheck'] = passCheck;
 
 forgotPass.onclick = function() {
-  console.log('Asta e! ^_^');
+  snackbar('Asta e! 🤷‍♂️');
 };
 
 createAcc.onclick = function() {
@@ -90,7 +124,7 @@ userBox.onblur = function() {
 };
 
 passBox.onkeyup = function() {
-  if (passBox.value.length >= 8 && passBox.value.length <= 100) {
+  if (passBox.value.length >= 8 && passBox.value.length <= 100 && passCheck(passBox.value) == true) {
     passBox.className = green;
     if (repeatBox) {
       repeatBox.onkeyup(null);
@@ -110,36 +144,45 @@ passBox.onkeyup = function() {
 submitForm.addEventListener('submit', function(e) {
   if (userBox.value.length >= 6 && userBox.value.length <= 40) {
     if (passBox.value.length >= 8 && passBox.value.length <= 100) {
-      if (repeatBox) {
-        if (passBox.value == repeatBox.value) {
-          xhr('POST', '/createUser', {username: userBox.value, password: passBox.value}, function(r) {
-            if (r == 'true') {
-              removeRepeatBox();
-              submitForm.reset();
-              userBox.className = gray;
-              passBox.className = gray;
-              snackbar('Cont creat cu succes!');
-            } else {
-              snackbar('Numele de utilizator există deja!', 2);
+      if (passCheck(passBox.value) == true) {
+        if (repeatBox) {
+          if (passBox.value == repeatBox.value) {
+            xhr('POST', '/createUser', {username: userBox.value, password: passBox.value}, function(r) {
+              if (r == 'true') {
+                removeRepeatBox();
+                submitForm.reset();
+                userBox.className = gray;
+                passBox.className = gray;
+                snackbar('Cont creat cu succes!');
+              } else {
+                snackbar('Numele de utilizator există deja!', 2);
+              }
+            });
+          } else {
+            snackbar('Parolele trebuie să fie identice!', 2);
+          }
+        } else {
+          xhr('POST', '/loginUser', {username: userBox.value, password: passBox.value}, function(r) {
+            switch (r) {
+              case 'USER_DISABLED': snackbar('Contul este dezactivat! Spunei lui Gennerator și rezolvă el.', 3); break;
+              case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
+              default: {
+                document.body.innerHTML = r;
+                setTimeout(function() {
+                  window.location.href = '/';
+                }, 3000);
+                break;
+              }
             }
           });
-        } else {
-          snackbar('Parolele trebuie să fie identice!', 2);
         }
       } else {
-        xhr('POST', '/loginUser', {username: userBox.value, password: passBox.value}, function(r) {
-          switch (r) {
-            case 'USER_DISABLED': snackbar('Contul este dezactivat! Spunei lui Gennerator și rezolvă el.', 3); break;
-            case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
-            default: {
-              document.body.innerHTML = r;
-              setTimeout(function() {
-                window.location.href = '/';
-              }, 3000);
-              break;
-            }
-          }
-        });
+        err = 'Parola trebuie să conțină cel puțin:\n';
+        if (containsLowercase(passBox.value) == false) err += '- un caracter minuscul\n';
+        if (containsUppercase(passBox.value) == false) err += '- un caracter majuscul\n';
+        if (containsDigit(passBox.value) == false) err += '- o cifră\n';
+        if (containsSpecial(passBox.value) == false) err += '- un caracter special\n';
+        snackbar(err, 2);
       }
     } else {
       snackbar('Parola trebuie să conțină minimum 8 caractere!', 2);
