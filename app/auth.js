@@ -72,7 +72,8 @@ async function loginUser(usr, pass) {
  * @return {Promise<boolean>} True if exists, false otherwise
  */
 async function usernameExists(usr) {
-  if (await db.query('SELECT COUNT(username) FROM users WHERE LOWER(username) = LOWER($1);', [usr]) == 1, 'usernameExists') {
+  const u = await db.query('SELECT COUNT(username) FROM users WHERE LOWER(username) = LOWER($1);', [usr]);
+  if (u[0] && u[0][0] == 1) {
     return true;
   }
   return false;
