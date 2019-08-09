@@ -8,12 +8,15 @@
       "clone": "https://github.com/GenneratorX/my-website.git"
     },
     "keywords": [
-      "html5",
       "nodejs",
+      "website",
       "express",
       "handlebars",
-      "js",
-      "mariadb",
-      "argon2"
+      "argon2",
+      "gulp",
+      "postgresql",
+      "javascript",
+      "html5",
+      "css3"
     ]
 }
