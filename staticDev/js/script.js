@@ -11,11 +11,19 @@ if (document.readyState !== 'loading') {
   });
 }
 
+/**
+ * Gives a ribbon button the 'selected' look based on the current path
+ */
 function selectButton() {
   const b = window.location.pathname.substring(1);
   if (document.getElementById(b)) document.getElementById(b).className+=' selected';
 }
 
+/**
+ * Sets attributes on a HTML element
+ * @param {Element} elem HTML element
+ * @param {Object.<string, string>} attr Object containing attribute names and its values
+ */
 function setAttributes(elem, attr) {
   for (const n in attr) {
     if (!elem.hasOwnProperty(n)) {
@@ -24,6 +32,13 @@ function setAttributes(elem, attr) {
   }
 }
 
+/**
+ * Sends an XMLHttpRequest to the server
+ * @param {string} method HTTP method to use (eg. GET/POST)
+ * @param {string} url Url
+ * @param {Object.<string, string>} req Data to send
+ * @param {function(*):void} cb Callback
+ */
 function xhr(method, url, req, cb) {
   const xhr = new XMLHttpRequest();
   xhr.open(method, url, true);
@@ -34,6 +49,11 @@ function xhr(method, url, req, cb) {
   };
 }
 
+/**
+ * Displays a snackbar notification
+ * @param {string} msg Snackbar message
+ * @param {number} type Snackbar color [0 - green | 1 - orange | 2 - red | 3 - blue]
+ */
 function snackbar(msg, type = 0) {
   const snackB = document.createElement('div');
   snackB.setAttribute('id', 'snackbar');
@@ -55,6 +75,67 @@ function snackbar(msg, type = 0) {
   }, 3000);
 }
 
+/**
+ * Checks if string contains a digit
+ * @param {string} str String to be checked
+ * @return {boolean} True if string contains a digit, false otherwise
+ */
+function containsDigit(str) {
+  for (let i = 0; i < str.length; i++) {
+    if (str.charAt(i) >= '0' && str.charAt(i) <= '9') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Checks if string contains a lowercase letter
+ * @param {string} str String to be checked
+ * @return {boolean} True if string contains a lowercase letter, false otherwise
+ */
+function containsLowercase(str) {
+  for (let i = 0; i < str.length; i++) {
+    if (str.charAt(i) >= 'a' && str.charAt(i) <= 'z') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Checks if string contains an uppercase letter
+ * @param {string} str String to be checked
+ * @return {boolean} True if string contains an uppercase letter, false otherwise
+ */
+function containsUppercase(str) {
+  for (let i = 0; i < str.length; i++) {
+    if (str.charAt(i) >= 'A' && str.charAt(i) <= 'Z') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Checks if string contains a special character
+ * @param {string} str String to be checked
+ * @return {boolean} True if string contains a special character, false otherwise
+ */
+function containsSpecial(str) {
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charAt(i);
+    if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 window['setAttributes'] = setAttributes;
 window['xhr'] = xhr;
 window['snackbar'] = snackbar;
+window['containsDigit'] = containsDigit;
+window['containsLowercase'] = containsLowercase;
+window['containsUppercase'] = containsUppercase;
+window['containsSpecial'] = containsSpecial;
