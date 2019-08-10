@@ -35,7 +35,7 @@ function setAttributes(elem, attr) {
 /**
  * Sends an XMLHttpRequest to the server
  * @param {string} method HTTP method to use (eg. GET/POST)
- * @param {string} url Url
+ * @param {string} url URL to send the request to
  * @param {Object.<string, string>} req Data to send
  * @param {function(*):void} cb Callback
  */

@@ -19,7 +19,6 @@ app.set('x-powered-by', false);
 app.set('etag', false);
 app.set('trust proxy', '127.0.0.1');
 
-app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 app.use(session({
@@ -111,6 +110,7 @@ app.post('/loginUser', function(req, res) {
         db.query('SELECT username FROM users WHERE LOWER(username) = LOWER($1);', [req.body.username]).then( (f) => {
           res.locals.userName = f.toString();
           req.session.username = res.locals.userName;
+          db.query('UPDATE users SET lastlogin = CURRENT_TIMESTAMP WHERE username = $1', [f.toString()]);
           res.render('loginS', {layout: false});
         }, (r) => console.log);
       } else {

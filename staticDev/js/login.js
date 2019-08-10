@@ -177,7 +177,7 @@ submitForm.addEventListener('submit', function(e) {
           });
         }
       } else {
-        err = 'Parola trebuie să conțină cel puțin:\n';
+        let err = 'Parola trebuie să conțină cel puțin:\n';
         if (containsLowercase(passBox.value) == false) err += '- un caracter minuscul\n';
         if (containsUppercase(passBox.value) == false) err += '- un caracter majuscul\n';
         if (containsDigit(passBox.value) == false) err += '- o cifră\n';

@@ -24,8 +24,8 @@ async function hash(pass) {
  * Adds user to database
  * @param {string} usr Username
  * @param {string} pass Password
- * @param {number} uType Account type [0|1]
- * @param {number} uActive Enabled/Disabled account [0|1]
+ * @param {number} uType Account type [0 - Admin | 1 - User]
+ * @param {number} uActive Enabled/Disabled account [1|0]
  * @return {Promise<boolean|string>} True if successful, error string otherwise
  */
 async function createUser(usr, pass, uType = 1, uActive = 0) {
