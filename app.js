@@ -19,7 +19,10 @@ app.set('x-powered-by', false);
 app.set('etag', false);
 app.set('trust proxy', '127.0.0.1');
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({
+  strict: true,
+  type: 'application/json',
+}));
 
 app.use(session({
   name: '__Host-sessionID',
@@ -110,7 +113,6 @@ app.post('/loginUser', function(req, res) {
         db.query('SELECT username FROM users WHERE LOWER(username) = LOWER($1);', [req.body.username]).then( (f) => {
           res.locals.userName = f.toString();
           req.session.username = res.locals.userName;
-          db.query('UPDATE users SET lastlogin = CURRENT_TIMESTAMP WHERE username = $1', [f.toString()]);
           res.render('loginS', {layout: false});
         }, (r) => console.log);
       } else {
@@ -118,7 +120,7 @@ app.post('/loginUser', function(req, res) {
       }
     }, (r) => console.log);
   } else {
-    res.send('Cererea nu este corectă! Ieși acas\'!');
+    res.status(400).send('Cererea nu este corectă! Ieși acas\'!');
   }
 });
 
@@ -128,7 +130,7 @@ app.post('/createUser', function(req, res) {
       res.send(f);
     }, (r) => console.log);
   } else {
-    res.send('Cererea nu este corectă! Ieși acas\'!');
+    res.status(400).send('Cererea nu este corectă! Ieși acas\'!');
   }
 });
 
@@ -138,7 +140,7 @@ app.post('/usernameExists', function(req, res) {
       res.send(f);
     }, (r) => console.log);
   } else {
-    res.send('Cererea nu este corectă! Ieși acas\'!');
+    res.status(400).send('Cererea nu este corectă! Ieși acas\'!');
   }
 });
 

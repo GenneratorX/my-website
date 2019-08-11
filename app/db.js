@@ -6,11 +6,10 @@ module.exports = {query, pool};
 /**
  * Querries the database
  * @param {string} qry Query string
- * @param {string[]} param Query parameters
- * @param {string} qname Query name
+ * @param {string[]} [param=[]] Query parameters
  * @return {Promise<any>} Query result
  */
-async function query(qry, param=[], qname='') {
+async function query(qry, param=[]) {
   let conn;
   try {
     conn = await pool.connect();
@@ -18,7 +17,6 @@ async function query(qry, param=[], qname='') {
       text: qry,
       values: param,
       rowMode: 'array',
-      name: qname,
     });
     return res.rows;
   } catch (err) {
