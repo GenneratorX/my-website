@@ -1,2 +1,6 @@
 {{> ribbon}}
-<div class=content></div>
+{{# if userName}}
+    <div class=content></div>
+{{else}}
+    {{> loginRequired}}
+{{/if}}
