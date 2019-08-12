@@ -1,27 +1,33 @@
 const gulp = require('gulp');
 const path = require('path');
+const fs = require('fs');
 
 const closureCompiler = require('google-closure-compiler').gulp();
 const crass = require('gulp-crass');
 const htmlmin = require('gulp-htmlmin');
 const brotli = require('gulp-brotli');
 
-function jsMin(f) {
-  return gulp.src(f, {base: './'})
+function jsMin() {
+  return gulp.src('./staticDev/js/*.js', {base: './'})
       .pipe(closureCompiler({
         compilation_level: 'ADVANCED',
         language_in: 'ECMASCRIPT_2019',
         assume_function_wrapper: true,
-        js_output_file: f.substring(13),
-        output_wrapper: '(function(){%output%})();',
-        jscomp_off: 'checkVars',
+        use_types_for_optimization: true,
       }, {
         platform: ['native', 'java', 'javascript'],
       }))
       .pipe(gulp.dest(`./static/js/`))
       .on('end', function() {
-        console.log(` [brotlify] ${f.replace('staticDev/', 'static/')}.br`);
-        brotlify(f.replace('staticDev/', 'static/'));
+        fs.readFile('./static/js/compiled.js', function(e, b) {
+          if (e) console.log(e);
+          const r = b.toString().split('window.placeholder=function(){};');
+          fs.writeFile('./static/js/login.js', r[0], (e) => console.log);
+          fs.writeFile('./static/js/script.js', r[1], (e) => console.log);
+          brotlify('./static/js/login.js');
+          brotlify('./static/js/script.js');
+          fs.unlink('./static/js/compiled.js', (e) => console.log);
+        });
       });
 }
 
@@ -68,7 +74,7 @@ function brotlify(f) {
 
 function watcher() {
   gulp.watch('./staticDev/js/*.js').on('change', function(f) {
-    jsMin(f);
+    jsMin();
     console.log(` [jsMin] ${f}`);
   });
 

@@ -1,4 +1,5 @@
-const link=document.createElement('link');
+/* eslint-disable no-unused-vars */
+const /** Element */ link=document.createElement('link');
 link.rel='stylesheet',
 link.href='/css/style.css',
 document.head.appendChild(link);
@@ -15,7 +16,7 @@ if (document.readyState !== 'loading') {
  * Gives a ribbon button the 'selected' look based on the current path
  */
 function selectButton() {
-  const b = window.location.pathname.substring(1);
+  const /** string */ b = window.location.pathname.substring(1);
   if (document.getElementById(b)) document.getElementById(b).className+=' selected';
 }
 
@@ -25,7 +26,7 @@ function selectButton() {
  * @param {Object.<string, string>} attr Object containing attribute names and its values
  */
 function setAttributes(elem, attr) {
-  for (const n in attr) {
+  for (const /** string */ n in attr) {
     if (!elem.hasOwnProperty(n)) {
       elem.setAttribute(n, attr[n]);
     }
@@ -40,7 +41,7 @@ function setAttributes(elem, attr) {
  * @param {function(*):void} cb Callback
  */
 function xhr(method, url, req, cb) {
-  const xhr = new XMLHttpRequest();
+  const /** XMLHttpRequest */ xhr = new XMLHttpRequest();
   xhr.open(method, url, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.send(JSON.stringify(req));
@@ -55,9 +56,9 @@ function xhr(method, url, req, cb) {
  * @param {number} type Snackbar color [0 - green | 1 - orange | 2 - red | 3 - blue]
  */
 function snackbar(msg, type = 0) {
-  const snackB = document.createElement('div');
+  const /** Element */ snackB = document.createElement('div');
   snackB.setAttribute('id', 'snackbar');
-  const snackC = document.createElement('div');
+  const /** Element */ snackC = document.createElement('div');
   snackC.setAttribute('id', 'snackC');
   snackC.textContent = msg;
   switch (type) {
@@ -131,11 +132,3 @@ function containsSpecial(str) {
   }
   return false;
 }
-
-window['setAttributes'] = setAttributes;
-window['xhr'] = xhr;
-window['snackbar'] = snackbar;
-window['containsDigit'] = containsDigit;
-window['containsLowercase'] = containsLowercase;
-window['containsUppercase'] = containsUppercase;
-window['containsSpecial'] = containsSpecial;

@@ -1,66 +1,33 @@
-const submitForm = document.getElementById('auth');
+const /** Element */ submitForm = document.getElementById('auth');
 
-const createAcc = document.getElementById('createAcc');
-const forgotPass = document.getElementById('forgotPass');
-const lText = document.getElementById('lText');
+const /** Element */ createAcc = document.getElementById('createAcc');
+const /** Element */ forgotPass = document.getElementById('forgotPass');
+const /** Element */ lText = document.getElementById('lText');
 
-const userBox = document.getElementById('username');
-const passBox = document.getElementById('password');
+const /** Element */ userBox = document.getElementById('username');
+const /** Element */ passBox = document.getElementById('password');
 
-const green = 'login lGreen';
-const red = 'login lRed';
-const gray = 'login';
+const /** string */ green = 'login lGreen';
+const /** string */ red = 'login lRed';
+const /** string */ gray = 'login';
 
-let repeatBox;
-
-function passCheck(str) {
-  let mare = false;
-  let mica = false;
-  let cifra = false;
-  let special = false;
-  for (let i = 0; i < str.length; i++) {
-    const c = str.charAt(i);
-    if (mare == true && mica == true && cifra == true && special == true) {
-      return true;
-    } else {
-      if (mare == false && c >= 'A' && c <= 'Z') {
-        mare = true;
-        continue;
-      }
-      if (mica == false && c >= 'a' && c <= 'z') {
-        mica = true;
-        continue;
-      }
-      if (cifra == false && c >= '0' && c <= '9') {
-        cifra = true;
-        continue;
-      }
-      if (special == false && (c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9')) {
-        special = true;
-      }
-    }
-  }
-  if (mare == true && mica == true && cifra == true && special == true) {
-    return true;
-  }
-  return false;
-}
-
-window['passCheck'] = passCheck;
+let /** Element */ repeatBox;
+let /** boolean */ repeatBoxEnabled = false;
 
 forgotPass.onclick = function() {
   snackbar('Asta e! 🤷‍♂️');
 };
 
 createAcc.onclick = function() {
-  if (!repeatBox) {
-    const repeatPass = document.createElement('input');
+  if (!repeatBoxEnabled) {
+    const /** Element */ repeatPass = document.createElement('input');
     setAttributes(repeatPass, {'class': 'login', 'id': 'repeatPassword', 'autocomplete': 'new-password', 'maxlength': 100, 'placeholder': 'Repetă parola', 'type': 'password'});
     repeatPass.required = true;
     setAttributes(passBox, {'autocomplete': 'new-password'});
 
     setAttributes(submitForm, {'action': 'createUser'});
     submitForm.insertBefore(repeatPass, document.getElementById('submitB'));
+    repeatBoxEnabled = true;
 
     repeatBox = document.getElementById('repeatPassword');
     repeatBox.onkeyup = function() {
@@ -84,19 +51,6 @@ createAcc.onclick = function() {
   }
 };
 
-function removeRepeatBox() {
-  lText.parentNode.removeChild(repeatBox);
-  repeatBox = undefined;
-
-  setAttributes(passBox, {'autocomplete': 'current-password'});
-  setAttributes(submitForm, {'action': 'loginUser'});
-
-  lText.textContent = 'Login';
-  createAcc.textContent = 'Nu ai cont? Creează unul!';
-
-  userBox.onblur();
-}
-
 userBox.onkeyup = function() {
   if (userBox.value.length >= 6 && userBox.value.length <= 40) {
     userBox.className = green;
@@ -110,7 +64,7 @@ userBox.onkeyup = function() {
 };
 
 userBox.onblur = function() {
-  if (repeatBox) {
+  if (repeatBoxEnabled) {
     if (userBox.className == green) {
       xhr('POST', '/usernameExists', {username: userBox.value}, function(r) {
         if (r == 'true') {
@@ -126,7 +80,7 @@ userBox.onblur = function() {
 passBox.onkeyup = function() {
   if (passBox.value.length >= 8 && passBox.value.length <= 100 && passCheck(passBox.value) == true) {
     passBox.className = green;
-    if (repeatBox) {
+    if (repeatBoxEnabled) {
       repeatBox.onkeyup(null);
     }
   } else {
@@ -134,18 +88,18 @@ passBox.onkeyup = function() {
       passBox.className = red;
     } else {
       passBox.className = gray;
-      if (repeatBox) {
+      if (repeatBoxEnabled) {
         repeatBox.onkeyup(null);
       }
     }
   }
 };
 
-submitForm.addEventListener('submit', function(e) {
+submitForm.addEventListener('submit', function(/** Event */ e) {
   if (userBox.value.length >= 6 && userBox.value.length <= 40) {
     if (passBox.value.length >= 8 && passBox.value.length <= 100) {
       if (passCheck(passBox.value) == true) {
-        if (repeatBox) {
+        if (repeatBoxEnabled) {
           if (passBox.value == repeatBox.value) {
             xhr('POST', '/createUser', {username: userBox.value, password: passBox.value}, function(r) {
               if (r == 'true') {
@@ -177,11 +131,11 @@ submitForm.addEventListener('submit', function(e) {
           });
         }
       } else {
-        let err = 'Parola trebuie să conțină cel puțin:\n';
-        if (containsLowercase(passBox.value) == false) err += '- un caracter minuscul\n';
-        if (containsUppercase(passBox.value) == false) err += '- un caracter majuscul\n';
-        if (containsDigit(passBox.value) == false) err += '- o cifră\n';
-        if (containsSpecial(passBox.value) == false) err += '- un caracter special\n';
+        let /** string */ err = 'Parola trebuie să conțină cel puțin:\n';
+        if (!containsLowercase(passBox.value)) err += '- un caracter minuscul\n';
+        if (!containsUppercase(passBox.value)) err += '- un caracter majuscul\n';
+        if (!containsDigit(passBox.value)) err += '- o cifră\n';
+        if (!containsSpecial(passBox.value)) err += '- un caracter special\n';
         snackbar(err, 2);
       }
     } else {
@@ -192,3 +146,60 @@ submitForm.addEventListener('submit', function(e) {
   }
   e.preventDefault();
 });
+
+/**
+ * Checks if the password requirements are met
+ * @param {string} str Password
+ * @return {boolean} True if password is valid, false otherwise
+ */
+function passCheck(str) {
+  let /** boolean */ mare = false;
+  let /** boolean */ mica = false;
+  let /** boolean */ cifra = false;
+  let /** boolean */ special = false;
+  for (let i = 0; i < str.length; i++) {
+    const /** string */ c = str.charAt(i);
+    if (mare && mica && cifra && special) {
+      return true;
+    } else {
+      if (!mare && c >= 'A' && c <= 'Z') {
+        mare = true;
+        continue;
+      }
+      if (!mica && c >= 'a' && c <= 'z') {
+        mica = true;
+        continue;
+      }
+      if (!cifra && c >= '0' && c <= '9') {
+        cifra = true;
+        continue;
+      }
+      if (!special && (c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9')) {
+        special = true;
+      }
+    }
+  }
+  if (mare && mica && cifra && special) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Removes the password repeat input box
+ */
+function removeRepeatBox() {
+  lText.parentNode.removeChild(repeatBox);
+  repeatBoxEnabled = false;
+
+  setAttributes(passBox, {'autocomplete': 'current-password'});
+  setAttributes(submitForm, {'action': 'loginUser'});
+
+  lText.textContent = 'Login';
+  createAcc.textContent = 'Nu ai cont? Creează unul!';
+
+  userBox.onblur();
+}
+
+/** Dummy function that is not touched by Closure Compiler that acts as a split point to separate the bundle in 2 files */
+window.placeholder = function() {};
