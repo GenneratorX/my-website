@@ -11,7 +11,7 @@ const watcher = chokidar.watch(['./staticDev', './viewsDev', './static'], {
   persistent: true,
   depth: 1,
   awaitWriteFinish: {
-    stabilityThreshold: 300,
+    stabilityThreshold: 200,
     pollInterval: 100,
   },
   cwd: './',
@@ -73,7 +73,7 @@ function jsMin() {
  */
 function cssMin(f) {
   fs.readFile(f, (error, buffer) => {
-    if (error) log;
+    if (error) log(error);
     fs.writeFile(f.replace('staticDev/', 'static/'),
         crass.parse(buffer.toString()).optimize({
           o1: true,
@@ -87,7 +87,7 @@ function cssMin(f) {
  */
 function htmlMin(f) {
   fs.readFile(f, (error, buffer) => {
-    if (error) log;
+    if (error) log(error);
     fs.writeFile(f.replace('viewsDev/', 'views/'),
         minify(buffer.toString(), {
           collapseWhitespace: true,
@@ -112,7 +112,7 @@ function htmlMin(f) {
  */
 function brotlify(f) {
   fs.readFile(f, (error, buffer) => {
-    if (error) log;
+    if (error) log(error);
     fs.writeFile(`${f}.br`,
         brotli.compress(buffer, {
           mode: 1,
