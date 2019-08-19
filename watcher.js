@@ -4,7 +4,7 @@ const fs = require('fs');
 const ClosureCompiler = require('google-closure-compiler').compiler;
 const crass = require('crass');
 const minify = require('html-minifier').minify;
-const brotli = require('brotli');
+const compress = require('iltorb').compress;
 
 const watcher = chokidar.watch(['./staticDev', './viewsDev', './static'], {
   ignored: /.*\.(br|png|ico|woff2|webp|txt)/,
@@ -20,7 +20,7 @@ const watcher = chokidar.watch(['./staticDev', './viewsDev', './static'], {
 const log = console.log.bind(console);
 
 watcher
-    .on('add', (path) => log(`[ADD] ${path}`))
+    .on('add', (path) => log(`[ADD] ${path}`)) // just log
     .on('change', (path) => {
       switch (path.substring(path.indexOf('.'))) {
         case '.css':
@@ -31,7 +31,10 @@ watcher
             log(`[brotli] ${path}`);
             brotlify(path);
           } break;
-        case '.handlebars': log(`[htmlMin] ${path}`); htmlMin(path); break;
+        case '.handlebars':
+          log(`[htmlMin] ${path}`);
+          htmlMin(path);
+          break;
         case '.js':
           if (path.includes('staticDev/')) {
             log(`[jsMin] ${path}`);
@@ -41,7 +44,25 @@ watcher
         default: log(`[brotli] ${path}`); brotlify(path);
       }
     })
-    .on('unlink', (path) => log(`[REMOVE] ${path}`));
+    .on('unlink', (path) => {
+      log(`[REMOVE] ${path}`);
+      switch (path.substring(path.indexOf('.'))) {
+        case '.handlebars':
+          if (path.includes('viewsDev/')) {
+            const pt = path.replace('viewsDev/', 'views/');
+            log(`[clean] ${pt}`);
+            fs.unlink(pt, (e) => console.log);
+          } break;
+        case '.js':
+        case '.css':
+          if (path.includes('staticDev/')) {
+            const pt = path.replace('staticDev/', 'static/');
+            log(`[clean] ${pt} + ${pt}.br`);
+            fs.unlink(pt, (e) => console.log);
+          } // fall-through
+        default: fs.unlink(`${pt}.br`, (e) => console.log);
+      }
+    });
 
 /**
  * Minifies JS files with Closure Compiler
@@ -57,9 +78,12 @@ function jsMin() {
   }).run((exitCode, stdOut, stdErr) => {
     if (exitCode == 0) {
       if (stdErr) log(`================================================\n${stdErr}================================================\n`);
-      const f = stdOut.split('window.placeholder=function(){};');
-      fs.writeFile('./static/js/login.js', f[0], (e) => log);
-      fs.writeFile('./static/js/script.js', f[1], (e) => log);
+      const f = stdOut.split(/\/\*\n\s(.*).\*\/\n/);
+      if (f.length > 0) {
+        for (let i=1; i<f.length; i+=2) {
+          fs.writeFile(`./static/js/${f[i]}`, f[i+1].replace(/\n/g, ''), (e) => console.log);
+        }
+      }
     } else {
       log(`Code: [${exitCode}]`);
       log(`Error: [${stdErr}]`);
@@ -77,7 +101,7 @@ function cssMin(f) {
     fs.writeFile(f.replace('staticDev/', 'static/'),
         crass.parse(buffer.toString()).optimize({
           o1: true,
-        }).toString(), (e) => log);
+        }).toString(), (e) => console.log);
   });
 }
 
@@ -102,7 +126,7 @@ function htmlMin(f) {
           removeStyleLinkTypeAttributes: true,
           sortAttributes: true,
           sortClassName: true,
-        }), (e) => log);
+        }), (e) => console.log);
   });
 }
 
@@ -113,12 +137,17 @@ function htmlMin(f) {
 function brotlify(f) {
   fs.readFile(f, (error, buffer) => {
     if (error) log(error);
-    fs.writeFile(`${f}.br`,
-        brotli.compress(buffer, {
-          mode: 1,
-          quality: 11,
-          lgwin: 24,
-          lgblock: 0,
-        }), (e) => log);
+    compress(buffer, {
+      mode: 1, // text
+      quality: 11,
+      lgwin: 24,
+      lgblock: 0,
+    }).then((out) => {
+      if (out.byteLength < buffer.byteLength) {
+        fs.writeFile(`${f}.br`, out, (e) => console.log);
+      } else {
+        log('Compressed > Original file');
+      }
+    }, (e) => console.log);
   });
 }
