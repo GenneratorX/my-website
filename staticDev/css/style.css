@@ -25,60 +25,46 @@
 
 html,
 body {
-	height: 100%;
+	height: 100vh;
 	font-family: 'Raleway', arial;
 	margin: 0;
 	padding: 0;
-}
-
-div.content {
 	display: flex;
-	padding-top: 55px;
-	color: #fff;
-	min-height: 100%;
-	-moz-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	box-sizing: border-box;
+	flex-direction: column;
 }
 
-.ribbon {
+.content {
 	display: flex;
-	height: auto;
-	width: 100%;
-	position: fixed;
-	top: 0;
-	background-color: #363636;
-}
-
-.err {
-	color: #fff;
 	height: 100%;
-}
-
-.index {
-	display: flex;
+	color: #fff;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	text-align: center;
-	width: 100%;
 	font-weight: 200;
-	font-size: 30px;
+	font-size: 2rem;
+}
+
+.ribbon {
+	display: flex;
+	height: 3rem;
+	position: sticky;
+	top: 0;
+	margin: 0;
+	background-color: #363636;
 }
 
 div.auth {
 	display: inline-block;
-	margin-top: 2%;
-	font-size: 18px;
+	margin-top: 1rem;
+	font-size: 1rem;
+	user-select: none;
 }
 
 a.auth {
-	margin-top: auto;
-	margin-bottom: auto;
 	color: #fff;
-	font-size: 20px;
+	font-size: 1.3rem;
 	font-weight: 700;
-	text-decoration: none;
 	cursor: pointer;
 }
 
@@ -86,43 +72,27 @@ a.auth:hover {
 	text-decoration: underline;
 }
 
-a.button {
-	display: inline-table;
-	background: #363636;
-	padding: 15px;
-	color: #fff;
-	font-weight: 700;
-	text-decoration: none;
-	text-align: center;
-	width: 5%;
-}
-
-a.selected, a.button:hover {
-	background: #232323;
-}
-
 .right, a.login {
-	margin: auto 0.5% auto auto;
+	margin: auto 0.5rem auto auto;
 	color: #fff;
-	font-size: 20px;
+	font-size: 1.3rem;
+	text-decoration: none;
 }
 
 input.login {
-	display:block;
-	border-radius:15px;
-	border:2px #363636 solid;
-	padding:5px 5px 5px 25px;
+	display: block;
+	border-radius: 15px;
+	border: 2px #363636 solid;
+	padding: 0.1rem 0.5rem 0.1rem 1.5rem;
 	font-family:'Raleway', arial;
-	font-weight:700;
-	font-size:14px;
-	color:#fff;
-	background:#232323;
-	outline:0;
-	width: 20%;
-	height: 3%;
-	min-width: 225px;
-	min-height: 30px;
-	margin-top: 10px;
+	font-weight: 700;
+	font-size: 1rem;
+	color: #fff;
+	background: #232323;
+	outline: 0;
+	min-width: 15rem;
+	min-height: 2.5rem;
+	margin-top: 1rem;
 }
 
 input.lRed {
@@ -134,24 +104,17 @@ input.lGreen {
 }
 
 input.submitB {
-	display: table;
 	background: #363636;
-	padding: 15px;
+	padding: 1rem;
 	color: #fff;
 	font-weight: 700;
-	font-size: 25px;
-	text-decoration: none;
-	text-align: center;
-	margin-top: 2%;
+	font-size: 2rem;
+	margin-top: 1em;
 	border: 0;
+	width: 2em;
+	height: 2em;
 	border-radius: 50%;
-	outline: none;
-}
-
-p.greenMsg {
-	font-size: 25px;
-	margin: 2% 0 0 0;
-	color: #09776C;
+	outline: 0;
 }
 
 input:hover[type="submit"] {
@@ -167,14 +130,64 @@ input:hover[type="submit"] {
 	font-weight: 700;
 }
 
-.mr {
-	margin-right: 1%;
-}
-
 .mb2 {
-	margin-bottom: 2%;
+	margin-bottom: 1rem;
 }
 
+/*============================== BUTTON ==============================*/
+.button {
+	display: flex;
+	background: #363636;
+	transition: background 0.5s ease-in-out;
+	padding: 1rem;
+	color: #fff;
+	font-weight: 700;
+	text-decoration: none;
+	text-align: center;
+	width: auto;
+	height: auto;
+}
+
+.button:hover {
+	background: #232323;
+	transition: background 0.3s ease-in-out;
+}
+
+.selected {
+	background: #232323;
+}
+
+/*============================== RESPONSIVE TOPBAR ====================*/
+.ribbon .hamburger {
+	display: none;
+	cursor: pointer;
+}
+
+.ham {
+	min-width: 3rem;
+	box-sizing: border-box;
+	padding: 0.8rem;
+}
+
+@media screen and (max-width: 576px) {
+	.ribbon a:not(:first-child) {
+		display: none;
+	}
+	.ribbon a:not(:first-child):hover, a:not(:first-child).selected {
+		background-color: #09776C;
+	}
+	.ribbon .hamburger {
+		display: flex;
+	}
+	.ribbon.responsive {
+		flex-direction: column;
+	}
+	.ribbon.responsive a{
+		display: flex;
+	}
+}
+
+/*============================== SNACKBAR ==============================*/
 #snackbar {
 	visibility: hidden;
 	display: flex;
@@ -183,13 +196,14 @@ input:hover[type="submit"] {
 	position: fixed;
 	right: 0;
 	left: 0;
-	bottom: 30px;
+	bottom: 2rem;
+	user-select: none;
 }
 
 #snackC {
 	max-width: 80%;
 	max-height: 80%;
-	padding: 20px;
+	padding: 1.3rem;
 	color: white;
 	border-radius: 2px;
 	white-space: pre-line;
@@ -218,12 +232,18 @@ input:hover[type="submit"] {
 
 @keyframes fadein {
 	from {bottom: 0; opacity: 0;}
-	to {bottom: 30px; opacity: 1;}
+	to {bottom: 2rem; opacity: 1;}
 }
 
 @keyframes fadeout {
-	from {bottom: 30px; opacity: 1;}
+	from {bottom: 2rem; opacity: 1;}
 	to {bottom: 0; opacity: 0;}
+}
+
+/*============================== MISC STUFF ==============================*/
+img {
+	max-width: 100%;
+	height: auto;
 }
 
 ::selection {

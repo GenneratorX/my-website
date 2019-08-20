@@ -1,10 +1,10 @@
-<script nonce={{{nonce}}} src=/js/login.js defer></script>
-<form id=auth action=loginUser method=POST class="index err">
-    <p id=lText>Login</p>
-    <input type=text name=username class=login maxlength=40 spellcheck=false placeholder="Nume utilizator" id=username autocomplete="username" tabindex=1 required>
-    <input type=password name=password class=login maxlength=100 placeholder="Parola" id=password autocomplete="current-password" tabindex=2 required>
-    <input id=submitB type=submit class=submitB value="&rarr;">
-    <div class=auth>
-        <a class=auth id=forgotPass>Ai uitat parola?</a> | <a class=auth id=createAcc>Nu ai cont? Creează unul!</a>
+<script nonce={{{nonce}}} src="/js/login.js" defer></script>
+<form id="auth" action="loginUser" method="POST" class="content">
+    <p id="lText">Login</p>
+    <input type="text" name="username" class="login" maxlength="40" spellcheck="false" placeholder="Nume utilizator" id="username" autocomplete="username" tabindex="1" required>
+    <input type="password" name="password" class="login" maxlength="100" placeholder="Parola" id="password" autocomplete="current-password" tabindex="2" required>
+    <input id="submitB" type="submit" class="submitB" value="&rtrif;">
+    <div class="auth">
+        <a class="auth" id="forgotPass">Ai uitat parola?</a> | <a class="auth" id="createAcc">Nu ai cont? Creează unul!</a>
     </div>
 </form>
