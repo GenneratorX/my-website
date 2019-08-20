@@ -29,13 +29,13 @@
   "devDependencies": {
     "chokidar": "^3.0.2",
     "crass": "^0.12.3",
-    "eslint": "^6.1.0",
+    "eslint": "^6.2.1",
     "eslint-config-google": "^0.13.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.14.3",
-    "eslint-plugin-standard": "^4.0.0",
+    "eslint-plugin-standard": "^4.0.1",
     "google-closure-compiler": "^20190729.0.0",
     "html-minifier": "^4.0.0",
     "iltorb": "^2.4.3"
