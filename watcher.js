@@ -46,21 +46,22 @@ watcher
     })
     .on('unlink', (path) => {
       log(`[REMOVE] ${path}`);
+      let pt = path;
       switch (path.substring(path.indexOf('.'))) {
         case '.handlebars':
           if (path.includes('viewsDev/')) {
-            const pt = path.replace('viewsDev/', 'views/');
+            pt = path.replace('viewsDev/', 'views/');
             log(`[clean] ${pt}`);
             fs.unlink(pt, (e) => console.log);
           } break;
         case '.js':
         case '.css':
           if (path.includes('staticDev/')) {
-            const pt = path.replace('staticDev/', 'static/');
-            log(`[clean] ${pt} + ${pt}.br`);
+            pt = path.replace('staticDev/', 'static/');
+            log(`[clean] ${pt}`);
             fs.unlink(pt, (e) => console.log);
           } // fall-through
-        default: fs.unlink(`${pt}.br`, (e) => console.log);
+        default: log(`[clean] ${pt}.br`); fs.unlink(`${pt}.br`, (e) => console.log);
       }
     });
 
