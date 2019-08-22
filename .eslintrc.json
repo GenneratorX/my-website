@@ -6,23 +6,25 @@
         "node": true
     },
     "extends": [
-        "google"
+        "eslint:recommended",
+		"google"
     ],
     "globals": {
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
     },
     "parserOptions": {
-        "ecmaFeatures": {
-            "jsx": true
-        },
         "ecmaVersion": 2019
     },
     "plugins": [
+		"import",
+		"node",
+		"promise",
         "react"
     ],
     "rules": {
 		"require-jsdoc" : 0,
-		"max-len": 0
+		"max-len": 0,
+		"no-undef": 0
     }
 }
