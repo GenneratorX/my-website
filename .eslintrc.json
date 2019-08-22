@@ -7,7 +7,7 @@
     },
     "extends": [
         "eslint:recommended",
-		"google"
+        "google"
     ],
     "globals": {
         "Atomics": "readonly",
@@ -17,14 +17,14 @@
         "ecmaVersion": 2019
     },
     "plugins": [
-		"import",
-		"node",
-		"promise",
+        "import",
+        "node",
+        "promise",
         "react"
     ],
     "rules": {
-		"require-jsdoc" : 0,
-		"max-len": 0,
-		"no-undef": 0
+        "require-jsdoc" : 0,
+        "max-len": 0,
+        "no-undef": 0
     }
 }
