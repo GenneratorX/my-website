@@ -1,3 +1,5 @@
+require('./env');
+
 const express = require('express');
 const exhb = require('express-handlebars');
 const session = require('express-session');
@@ -10,7 +12,6 @@ const db = require('./app/db');
 const util = require('./app/util');
 
 const app = express();
-const port = 8000;
 
 app.engine('handlebars', exhb());
 app.set('view engine', 'handlebars');
@@ -102,7 +103,7 @@ app.get('/logOut', function(req, res) {
       maxAge: null,
       sameSite: true,
     });
-    res.redirect('/');
+    res.redirect('back');
   }
 });
 
@@ -110,7 +111,7 @@ app.post('/loginUser', function(req, res) {
   if (req.body.username && req.body.password) {
     auth.loginUser(req.body.username, req.body.password).then( (f) => {
       if (f == true) {
-        db.query('SELECT username FROM users WHERE LOWER(username) = LOWER($1);', [req.body.username]).then( (f) => {
+        db.query('SELECT username FROM users WHERE LOWER(username) = LOWER($1);', [req.body.username]).then((f) => {
           res.locals.userName = f.toString();
           req.session.username = res.locals.userName;
           res.render('loginS', {layout: false});
@@ -125,8 +126,8 @@ app.post('/loginUser', function(req, res) {
 });
 
 app.post('/createUser', function(req, res) {
-  if (req.body.username && req.body.password) {
-    auth.createUser(req.body.username, req.body.password).then( (f) => {
+  if (req.body.username && req.body.password && req.body.email) {
+    auth.createUser(req.body.username, req.body.password, req.body.email).then((f) => {
       res.send(f);
     }, (r) => console.log);
   } else {
@@ -136,7 +137,17 @@ app.post('/createUser', function(req, res) {
 
 app.post('/usernameExists', function(req, res) {
   if (req.body.username) {
-    auth.usernameExists(req.body.username).then( (f) => {
+    auth.usernameExists(req.body.username).then((f) => {
+      res.send(f);
+    }, (r) => console.log);
+  } else {
+    res.status(400).send('Cererea nu este corectă! Ieși acas\'!');
+  }
+});
+
+app.post('/emailExists', function(req, res) {
+  if (req.body.email) {
+    auth.emailExists(req.body.email).then((f) => {
       res.send(f);
     }, (r) => console.log);
   } else {
@@ -148,4 +159,4 @@ app.use(function(req, res) {
   res.status(404).render('404');
 });
 
-app.listen(port, () => console.log(`Aplicatia ruleaza pe portul ${port}!`));
+app.listen(process.env.PORT, () => console.log(`Aplicatia ruleaza pe portul ${process.env.PORT}!`));

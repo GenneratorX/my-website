@@ -1,43 +1,42 @@
 const argon = require('argon2');
 const db = require('./db');
 
-module.exports = {createUser, loginUser, usernameExists};
+const hashOptions = {
+  type: argon.argon2d,
+  hashLength: 128,
+  timeCost: 10,
+  memoryCost: 32768,
+  parallelism: 8,
+  raw: false,
+  saltLength: 32,
+};
+const emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
 
-/**
- * Hashes the input using argon2d
- * @param {string} pass String to be hashed
- * @return {Promise<string>} The hashed input
- */
-async function hash(pass) {
-  return argon.hash(pass, {
-    type: argon.argon2d,
-    hashLength: 128,
-    timeCost: 10,
-    memoryCost: 32768,
-    parallelism: 8,
-    raw: false,
-    saltLength: 32,
-  });
-}
+module.exports = {createUser, loginUser, usernameExists, emailExists};
 
 /**
  * Adds user to database
  * @param {string} usr Username
  * @param {string} pass Password
+ * @param {string} email E-mail address
  * @param {number} [uType=1] Account type [0 - Admin | 1 - User]
  * @param {number} [uActive=0] Enabled/Disabled account [0 - Disabled | 1 - Enabled]
  * @return {Promise<boolean|string>} True if the user was created, error string otherwise
  */
-async function createUser(usr, pass, uType = 1, uActive = 0) {
-  if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100 && await passwordCheck(pass)) {
+async function createUser(usr, pass, email, uType = 1, uActive = 0) {
+  if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100 && passwordCheck(pass) && emailRegexp.test(email)) {
     if (! await usernameExists(usr)) {
-      await db.query('INSERT INTO users VALUES (DEFAULT, $1, $2, $3, $4, DEFAULT, $5);', [usr, await hash(pass), uType, uActive, new Date()]);
-      return true;
+      if (! await emailExists(email)) {
+        await db.query('INSERT INTO users VALUES (DEFAULT, $1, $2, $3, $4, $5, DEFAULT, $6);', [usr, await argon.hash(pass, hashOptions), email, uType, uActive, new Date()]);
+        return true;
+      } else {
+        return 'EMAIL_EXISTS';
+      }
     } else {
       return 'USER_EXISTS';
     }
   }
-  return 'USER_PASSWORD_NOT_VALID';
+  return 'USER_PASSWORD_EMAIL_NOT_VALID';
 }
 
 /**
@@ -68,7 +67,7 @@ async function loginUser(usr, pass) {
 }
 
 /**
- * Checks if user exists
+ * Checks if the username exists in the database
  * @param {string} usr Username
  * @return {Promise<boolean>} True if the username exists, false otherwise
  */
@@ -81,11 +80,24 @@ async function usernameExists(usr) {
 }
 
 /**
+ * Checks if the email exists in the database
+ * @param {string} email Email address
+ * @return {Promise<boolean>} True if the email address exists, false otherwise
+ */
+async function emailExists(email) {
+  const u = await db.query('SELECT COUNT(email) FROM users WHERE LOWER(email) = LOWER($1);', [email]);
+  if (u[0] && u[0][0] == 1) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Checks if the password requirements are met
  * @param {string} pass Password
  * @return {boolean} True if password is valid, false otherwise
  */
-async function passwordCheck(pass) {
+function passwordCheck(pass) {
   let mare = false;
   let mica = false;
   let cifra = false;

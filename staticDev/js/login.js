@@ -1,3 +1,5 @@
+/** @preserve login.js */
+
 const /** Element */ submitForm = document.getElementById('auth');
 
 const /** Element */ createAcc = document.getElementById('createAcc');
@@ -12,7 +14,10 @@ const /** string */ red = 'login lRed';
 const /** string */ gray = 'login';
 
 let /** Element */ repeatBox;
+let /** Element */ emailBox;
 let /** boolean */ repeatBoxEnabled = false;
+
+const /** RegExp */ emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
 
 forgotPass.onclick = function() {
   snackbar('Asta e! 🤷‍♂️');
@@ -21,12 +26,36 @@ forgotPass.onclick = function() {
 createAcc.onclick = function() {
   if (!repeatBoxEnabled) {
     const /** Element */ repeatPass = document.createElement('input');
-    setAttributes(repeatPass, {'class': 'login', 'id': 'repeatPassword', 'autocomplete': 'new-password', 'maxlength': 100, 'placeholder': 'Repetă parola', 'type': 'password'});
-    repeatPass.required = true;
-    setAttributes(passBox, {'autocomplete': 'new-password'});
+    setAttributes(repeatPass, {
+      'class': 'login',
+      'id': 'repeatPassword',
+      'autocomplete': 'new-password',
+      'maxlength': '100',
+      'placeholder': 'Repetă parola',
+      'required': '',
+      'tabindex': '3',
+      'type': 'password',
+    });
 
+    const /** Element */ email = document.createElement('input');
+    setAttributes(email, {
+      'class': 'login',
+      'id': 'email',
+      'autocomplete': 'email',
+      'maxlength': '254',
+      'name': 'email',
+      'placeholder': 'E-mail',
+      'required': '',
+      'tabindex': '4',
+      'type': 'email',
+      'spellcheck': 'false',
+    });
+
+    setAttributes(passBox, {'autocomplete': 'new-password'});
     setAttributes(submitForm, {'action': 'createUser'});
+
     submitForm.insertBefore(repeatPass, document.getElementById('submitB'));
+    submitForm.insertBefore(email, document.getElementById('submitB'));
     repeatBoxEnabled = true;
 
     repeatBox = document.getElementById('repeatPassword');
@@ -42,12 +71,35 @@ createAcc.onclick = function() {
       }
     };
 
+    emailBox = document.getElementById('email');
+    emailBox.onkeyup = function() {
+      if (emailRegexp.test(emailBox.value)) {
+        emailBox.className = green;
+      } else {
+        if (emailBox.value.length != 0) {
+          emailBox.className = red;
+        } else {
+          emailBox.className = gray;
+        }
+      }
+    };
+
+    emailBox.onblur = function() {
+      if (emailBox.className == green) {
+        xhr('POST', '/emailExists', {'email': emailBox.value}, function(r) {
+          if (r == 'true') {
+            emailBox.className = red;
+          }
+        });
+      }
+    };
+
     lText.textContent = 'Creare cont';
     createAcc.textContent = 'Ai cont? Loghează-te!';
 
     userBox.onblur();
   } else {
-    removeRepeatBox();
+    removeCreateUser();
   }
 };
 
@@ -66,7 +118,7 @@ userBox.onkeyup = function() {
 userBox.onblur = function() {
   if (repeatBoxEnabled) {
     if (userBox.className == green) {
-      xhr('POST', '/usernameExists', {username: userBox.value}, function(r) {
+      xhr('POST', '/usernameExists', {'username': userBox.value}, function(r) {
         if (r == 'true') {
           userBox.className = red;
         }
@@ -98,25 +150,39 @@ passBox.onkeyup = function() {
 submitForm.addEventListener('submit', function(/** Event */ e) {
   if (userBox.value.length >= 6 && userBox.value.length <= 40) {
     if (passBox.value.length >= 8 && passBox.value.length <= 100) {
-      if (passCheck(passBox.value) == true) {
+      const chk = passCheck(passBox.value);
+      if (chk == true) {
         if (repeatBoxEnabled) {
           if (passBox.value == repeatBox.value) {
-            xhr('POST', '/createUser', {username: userBox.value, password: passBox.value}, function(r) {
-              if (r == 'true') {
-                removeRepeatBox();
-                submitForm.reset();
-                userBox.className = gray;
-                passBox.className = gray;
-                snackbar('Cont creat cu succes!');
-              } else {
-                snackbar('Numele de utilizator există deja!', 2);
-              }
-            });
+            if (emailRegexp.test(emailBox.value)) {
+              xhr('POST', '/createUser', {'username': userBox.value, 'password': passBox.value, 'email': emailBox.value}, function(r) {
+                switch (r) {
+                  case 'true':
+                    removeCreateUser();
+                    submitForm.reset();
+                    userBox.className = gray;
+                    passBox.className = gray;
+                    snackbar('Cont creat cu succes!');
+                    break;
+                  case 'USER_EXISTS':
+                    snackbar('Numele de utilizator există deja!', 2);
+                    break;
+                  case 'EMAIL_EXISTS':
+                    snackbar('Adresa e-mail există deja!', 2);
+                    break;
+                  default:
+                    snackbar('Nume utilizator/Parola/Email invalide', 2);
+                    break;
+                }
+              });
+            } else {
+              snackbar('Adresa e-mail nu este validă!', 2);
+            }
           } else {
             snackbar('Parolele trebuie să fie identice!', 2);
           }
         } else {
-          xhr('POST', '/loginUser', {username: userBox.value, password: passBox.value}, function(r) {
+          xhr('POST', '/loginUser', {'username': userBox.value, 'password': passBox.value}, function(r) {
             switch (r) {
               case 'USER_DISABLED': snackbar('Contul este dezactivat! Spunei lui Gennerator și rezolvă el.', 3); break;
               case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
@@ -132,10 +198,10 @@ submitForm.addEventListener('submit', function(/** Event */ e) {
         }
       } else {
         let /** string */ err = 'Parola trebuie să conțină cel puțin:\n';
-        if (!containsLowercase(passBox.value)) err += '- un caracter minuscul\n';
-        if (!containsUppercase(passBox.value)) err += '- un caracter majuscul\n';
-        if (!containsDigit(passBox.value)) err += '- o cifră\n';
-        if (!containsSpecial(passBox.value)) err += '- un caracter special\n';
+        if (!chk[0]) err += '- un caracter minuscul\n';
+        if (!chk[1]) err += '- un caracter majuscul\n';
+        if (!chk[2]) err += '- o cifră\n';
+        if (!chk[3]) err += '- un caracter special\n';
         snackbar(err, 2);
       }
     } else {
@@ -150,7 +216,7 @@ submitForm.addEventListener('submit', function(/** Event */ e) {
 /**
  * Checks if the password requirements are met
  * @param {string} str Password
- * @return {boolean} True if password is valid, false otherwise
+ * @return {boolean|Array<boolean>} True if password is valid, boolean array with all check results
  */
 function passCheck(str) {
   let /** boolean */ mare = false;
@@ -182,14 +248,15 @@ function passCheck(str) {
   if (mare && mica && cifra && special) {
     return true;
   }
-  return false;
+  return [mare, mica, cifra, special];
 }
 
 /**
  * Removes the password repeat input box
  */
-function removeRepeatBox() {
+function removeCreateUser() {
   lText.parentNode.removeChild(repeatBox);
+  lText.parentNode.removeChild(emailBox);
   repeatBoxEnabled = false;
 
   setAttributes(passBox, {'autocomplete': 'current-password'});
@@ -200,6 +267,3 @@ function removeRepeatBox() {
 
   userBox.onblur();
 }
-
-/** Dummy function that is not touched by Closure Compiler that acts as a split point to separate the bundle in 2 files */
-window.placeholder = function() {};

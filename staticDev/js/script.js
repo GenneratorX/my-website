@@ -1,4 +1,6 @@
 /* eslint-disable no-unused-vars */
+/** @preserve script.js */
+
 const /** Element */ link=document.createElement('link');
 link.rel='stylesheet',
 link.href='/css/style.css',
@@ -20,6 +22,17 @@ function selectButton() {
   if (document.getElementById(b)) document.getElementById(b).className+=' selected';
 }
 
+if (document.getElementById('hamburger')) {
+  const /** Element */ ribbon = document.getElementById('myRibbon');
+  document.getElementById('hamburger').onclick = function() {
+    if (ribbon.className == 'ribbon') {
+      ribbon.className += ' responsive';
+    } else {
+      ribbon.className = 'ribbon';
+    }
+  };
+}
+
 /**
  * Sets attributes on a HTML element
  * @param {Element} elem HTML element
@@ -27,7 +40,7 @@ function selectButton() {
  */
 function setAttributes(elem, attr) {
   for (const /** string */ n in attr) {
-    if (!elem.hasOwnProperty(n)) {
+    if (!Object.prototype.hasOwnProperty.call(elem, n)) {
       elem.setAttribute(n, attr[n]);
     }
   }
@@ -53,7 +66,7 @@ function xhr(method, url, req, cb) {
 /**
  * Displays a snackbar notification
  * @param {string} msg Snackbar message
- * @param {number} type Snackbar color [0 - green | 1 - orange | 2 - red | 3 - blue]
+ * @param {number} [type=0] Snackbar color [0 - green | 1 - orange | 2 - red | 3 - blue]
  */
 function snackbar(msg, type = 0) {
   const /** Element */ snackB = document.createElement('div');
@@ -74,61 +87,4 @@ function snackbar(msg, type = 0) {
     snackB.className = '';
     snackB.parentNode.removeChild(snackB);
   }, 3000);
-}
-
-/**
- * Checks if string contains a digit
- * @param {string} str String to be checked
- * @return {boolean} True if string contains a digit, false otherwise
- */
-function containsDigit(str) {
-  for (let i = 0; i < str.length; i++) {
-    if (str.charAt(i) >= '0' && str.charAt(i) <= '9') {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Checks if string contains a lowercase letter
- * @param {string} str String to be checked
- * @return {boolean} True if string contains a lowercase letter, false otherwise
- */
-function containsLowercase(str) {
-  for (let i = 0; i < str.length; i++) {
-    if (str.charAt(i) >= 'a' && str.charAt(i) <= 'z') {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Checks if string contains an uppercase letter
- * @param {string} str String to be checked
- * @return {boolean} True if string contains an uppercase letter, false otherwise
- */
-function containsUppercase(str) {
-  for (let i = 0; i < str.length; i++) {
-    if (str.charAt(i) >= 'A' && str.charAt(i) <= 'Z') {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Checks if string contains a special character
- * @param {string} str String to be checked
- * @return {boolean} True if string contains a special character, false otherwise
- */
-function containsSpecial(str) {
-  for (let i = 0; i < str.length; i++) {
-    const c = str.charAt(i);
-    if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9')) {
-      return true;
-    }
-  }
-  return false;
 }
