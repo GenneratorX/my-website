@@ -1,6 +1,11 @@
 const argon = require('argon2');
+const crypto = require('crypto');
+const querystring = require('querystring');
+const nodemailer = require('nodemailer');
+
 const db = require('./db');
 
+const emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
 const hashOptions = {
   type: argon.argon2d,
   hashLength: 128,
@@ -10,9 +15,21 @@ const hashOptions = {
   raw: false,
   saltLength: 32,
 };
-const emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+  tls: {
+    requireTLS: true,
+    rejectUnauthorized: true,
+  },
+});
 
-module.exports = {createUser, loginUser, usernameExists, emailExists};
+module.exports = {createUser, loginUser, enableUser, usernameExists, emailExists};
 
 /**
  * Adds user to database
@@ -27,7 +44,15 @@ async function createUser(usr, pass, email, uType = 1, uActive = 0) {
   if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100 && passwordCheck(pass) && emailRegexp.test(email)) {
     if (! await usernameExists(usr)) {
       if (! await emailExists(email)) {
-        await db.query('INSERT INTO users VALUES (DEFAULT, $1, $2, $3, $4, $5, DEFAULT, $6);', [usr, await argon.hash(pass, hashOptions), email, uType, uActive, new Date()]);
+        await db.query('INSERT INTO users VALUES (DEFAULT, $1, $2, LOWER($3), $4, $5, DEFAULT, $6);', [usr, await argon.hash(pass, hashOptions), email, uType, uActive, new Date()]);
+        const actCode = await crypto.randomBytes(128).toString('base64');
+        db.query('INSERT INTO users_activation VALUES ((SELECT user_id FROM users WHERE LOWER(username) = LOWER($1)), $2)', [usr, actCode]);
+        transporter.sendMail({
+          from: `"Gennerator" <${process.env.EMAIL_USERNAME}>`,
+          to: `"${usr}" <${email.toLowerCase()}>`,
+          subject: 'Confirmă contul creat!',
+          html: `<!DOCTYPE html><html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><h1>Uite linkul de activare:</h1><b>https://gennerator.com/activate?act=${querystring.escape(actCode)}</b><h2>*Hint: Dăi click pe linkul de mai sus!</h2><body></html>`,
+        });
         return true;
       } else {
         return 'EMAIL_EXISTS';
@@ -64,6 +89,22 @@ async function loginUser(usr, pass) {
     }
   }
   return 'USER_PASSWORD_NOT_VALID';
+}
+
+/**
+ * Activates users account
+ * @param {string} activationKey Activation key
+ * @return {Promise<boolean>} True if the activation was successful, false otherwise
+ */
+async function enableUser(activationKey) {
+  const u = await db.query('SELECT user_id FROM users_activation WHERE activation_key = $1;', [activationKey]);
+  if (u[0] && u[0][0]) {
+    db.query('UPDATE users SET active = true WHERE user_id = $1', [u[0][0]]);
+    db.query('DELETE FROM users_activation WHERE user_id = $1', [u[0][0]]);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 /**

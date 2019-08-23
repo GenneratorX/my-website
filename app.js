@@ -85,6 +85,20 @@ app.get('/partajare', function(req, res) {
   res.render('partajare');
 });
 
+app.get('/activate', function(req, res) {
+  if (req.query.act) {
+    auth.enableUser(req.query.act).then((f) => {
+      if (f) {
+        res.render('activate');
+      } else {
+        res.redirect('back');
+      }
+    }, (r) => console.log);
+  } else {
+    res.redirect('back');
+  }
+});
+
 app.get('/login', function(req, res) {
   if (!res.locals.userName) {
     res.render('login');

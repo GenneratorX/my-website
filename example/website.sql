@@ -1,5 +1,4 @@
 /*
-
  Source Server Type    : PostgreSQL
  Source Server Version : 110005
  Source Catalog        : gennerator
@@ -8,7 +7,6 @@
  Target Server Type    : PostgreSQL
  Target Server Version : 110005
  File Encoding         : 65001
- 
 */
 
 
@@ -16,7 +14,7 @@
 -- Sequence structure for user_id_seq
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "website"."user_id_seq";
-CREATE SEQUENCE "website"."user_id_seq" 
+CREATE SEQUENCE "website"."user_id_seq"
 INCREMENT 1
 MINVALUE  1
 MAXVALUE 36000
@@ -51,11 +49,14 @@ CREATE TABLE "website"."users" (
 ;
 
 -- ----------------------------
--- Alter sequences owned by
+-- Table structure for users_activation
 -- ----------------------------
-ALTER SEQUENCE "website"."user_id_seq"
-OWNED BY "website"."users"."user_id";
-SELECT setval('"website"."user_id_seq"', 1, true);
+DROP TABLE IF EXISTS "website"."users_activation";
+CREATE TABLE "website"."users_activation" (
+  "user_id" int2 NOT NULL,
+  "activation_key" varchar COLLATE "pg_catalog"."default" NOT NULL
+)
+;
 
 -- ----------------------------
 -- Primary Key structure for table session
@@ -72,3 +73,13 @@ ALTER TABLE "website"."users" ADD CONSTRAINT "users_email_key" UNIQUE ("email");
 -- Primary Key structure for table users
 -- ----------------------------
 ALTER TABLE "website"."users" ADD CONSTRAINT "users_pkey" PRIMARY KEY ("user_id");
+
+-- ----------------------------
+-- Primary Key structure for table users_activation
+-- ----------------------------
+ALTER TABLE "website"."users_activation" ADD CONSTRAINT "users_activation_pkey" PRIMARY KEY ("user_id");
+
+-- ----------------------------
+-- Foreign Keys structure for table users_activation
+-- ----------------------------
+ALTER TABLE "website"."users_activation" ADD CONSTRAINT "users_activation_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "website"."users" ("user_id") ON DELETE CASCADE ON UPDATE NO ACTION;

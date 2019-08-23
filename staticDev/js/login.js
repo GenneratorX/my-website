@@ -148,67 +148,64 @@ passBox.onkeyup = function() {
 };
 
 submitForm.addEventListener('submit', function(/** Event */ e) {
-  if (userBox.value.length >= 6 && userBox.value.length <= 40) {
-    if (passBox.value.length >= 8 && passBox.value.length <= 100) {
-      const chk = passCheck(passBox.value);
-      if (chk == true) {
-        if (repeatBoxEnabled) {
-          if (passBox.value == repeatBox.value) {
+  if (userBox.className == green) {
+    if (passBox.className == green) {
+      if (repeatBoxEnabled) {
+        if (repeatBox.className == green) {
+          if (emailBox.className == green) {
+            xhr('POST', '/createUser', {'username': userBox.value, 'password': passBox.value, 'email': emailBox.value}, function(r) {
+              removeCreateUser();
+              submitForm.reset();
+              userBox.className = gray;
+              passBox.className = gray;
+              snackbar('Cont creat cu succes!');
+            });
+          } else {
             if (emailRegexp.test(emailBox.value)) {
-              xhr('POST', '/createUser', {'username': userBox.value, 'password': passBox.value, 'email': emailBox.value}, function(r) {
-                switch (r) {
-                  case 'true':
-                    removeCreateUser();
-                    submitForm.reset();
-                    userBox.className = gray;
-                    passBox.className = gray;
-                    snackbar('Cont creat cu succes!');
-                    break;
-                  case 'USER_EXISTS':
-                    snackbar('Numele de utilizator există deja!', 2);
-                    break;
-                  case 'EMAIL_EXISTS':
-                    snackbar('Adresa e-mail există deja!', 2);
-                    break;
-                  default:
-                    snackbar('Nume utilizator/Parola/Email invalide', 2);
-                    break;
-                }
-              });
+              snackbar('Adresa e-mail există deja!', 2);
             } else {
               snackbar('Adresa e-mail nu este validă!', 2);
             }
-          } else {
-            snackbar('Parolele trebuie să fie identice!', 2);
           }
         } else {
-          xhr('POST', '/loginUser', {'username': userBox.value, 'password': passBox.value}, function(r) {
-            switch (r) {
-              case 'USER_DISABLED': snackbar('Contul este dezactivat! Spunei lui Gennerator și rezolvă el.', 3); break;
-              case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
-              default: {
-                document.body.innerHTML = r;
-                setTimeout(function() {
-                  window.location.href = '/';
-                }, 3000);
-                break;
-              }
-            }
-          });
+          if (repeatBox.value != passBox.value) {
+            snackbar('Parolele trebuie să fie identice!', 2);
+          }
         }
       } else {
+        xhr('POST', '/loginUser', {'username': userBox.value, 'password': passBox.value}, function(r) {
+          switch (r) {
+            case 'USER_DISABLED': snackbar('Contul este dezactivat! Verifică adresa de e-mail înregistrată pentru activarea contului.', 3); break;
+            case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
+            default:
+              document.body.innerHTML = r;
+              setTimeout(function() {
+                window.location.href = '/';
+              }, 3000);
+          }
+        });
+      }
+    } else {
+      if (passBox.value.length >= 8 && passBox.value.length <= 100) {
+        const chk = passCheck(passBox.value);
         let /** string */ err = 'Parola trebuie să conțină cel puțin:\n';
         if (!chk[0]) err += '- un caracter minuscul\n';
         if (!chk[1]) err += '- un caracter majuscul\n';
         if (!chk[2]) err += '- o cifră\n';
         if (!chk[3]) err += '- un caracter special\n';
         snackbar(err, 2);
+      } else {
+        snackbar('Parola trebuie să conțină minimum 8 caractere!', 2);
       }
-    } else {
-      snackbar('Parola trebuie să conțină minimum 8 caractere!', 2);
     }
   } else {
-    snackbar('Numele de utilizator trebuie să conțină minimum 6 caractere!', 2);
+    if (userBox.value.length >= 6 && userBox.value.length <= 40) {
+      if (repeatBoxEnabled) {
+        snackbar('Numele de utilizator există deja!', 2);
+      }
+    } else {
+      snackbar('Numele de utilizator trebuie să conțină minimum 6 caractere!', 2);
+    }
   }
   e.preventDefault();
 });

@@ -56,7 +56,7 @@ function setAttributes(elem, attr) {
 function xhr(method, url, req, cb) {
   const /** XMLHttpRequest */ xhr = new XMLHttpRequest();
   xhr.open(method, url, true);
-  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
   xhr.send(JSON.stringify(req));
   xhr.onload = function() {
     cb(xhr.response);
