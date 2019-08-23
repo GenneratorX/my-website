@@ -102,9 +102,8 @@ async function enableUser(activationKey) {
     db.query('UPDATE users SET active = true WHERE user_id = $1', [u[0][0]]);
     db.query('DELETE FROM users_activation WHERE user_id = $1', [u[0][0]]);
     return true;
-  } else {
-    return false;
   }
+  return false;
 }
 
 /**
