@@ -1,3 +1,5 @@
+'use strict';
+
 const argon = require('argon2');
 const crypto = require('crypto');
 const querystring = require('querystring');
@@ -22,10 +24,6 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD,
-  },
-  tls: {
-    requireTLS: true,
-    rejectUnauthorized: true,
   },
 });
 
@@ -65,7 +63,7 @@ async function createUser(usr, pass, email, uType = 1, uActive = 0) {
 }
 
 /**
- * Authenticates user
+ * Authenticates the user
  * @param {string} usr Username
  * @param {string} pass Password
  * @return {Promise<boolean|string>} True if the login was successful, error string otherwise
@@ -92,7 +90,7 @@ async function loginUser(usr, pass) {
 }
 
 /**
- * Activates users account
+ * Activates the user account
  * @param {string} activationKey Activation key
  * @return {Promise<boolean>} True if the activation was successful, false otherwise
  */

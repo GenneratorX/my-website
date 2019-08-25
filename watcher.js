@@ -1,3 +1,6 @@
+/* eslint-disable no-fallthrough */
+'use strict';
+
 const chokidar = require('chokidar');
 const fs = require('fs');
 

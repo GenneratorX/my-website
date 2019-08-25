@@ -1,3 +1,5 @@
+'use strict';
+
 const pg = require('pg');
 const pool = new pg.Pool({host: '/var/run/postgresql', max: 20});
 

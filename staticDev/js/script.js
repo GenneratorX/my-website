@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 /** @preserve script.js */
+'use strict';
 
 const /** Element */ link=document.createElement('link');
 link.rel='stylesheet',
