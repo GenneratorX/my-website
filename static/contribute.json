@@ -13,7 +13,6 @@
       "express",
       "handlebars",
       "argon2",
-      "gulp",
       "postgresql",
       "javascript",
       "html5",
