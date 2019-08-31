@@ -64,7 +64,7 @@ div.auth {
 a.auth {
   color: #fff;
   cursor: pointer;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 700;
 }
 
@@ -133,6 +133,14 @@ input:hover[type="submit"] {
 
 .mb2 {
   margin-bottom: 1rem;
+}
+
+.checkbox-label {
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  outline: 0;
+  user-select: none;
 }
 
 /* ============================== BUTTON ============================== */
@@ -272,5 +280,6 @@ img {
 
 html {
   opacity: 1;
+  overflow: auto;
   visibility: visible;
 }

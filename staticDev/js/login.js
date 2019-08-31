@@ -16,6 +16,7 @@ const /** string */ gray = 'login';
 
 let /** Element */ repeatBox;
 let /** Element */ emailBox;
+let /** Element */ checkLabel;
 let /** boolean */ repeatBoxEnabled = false;
 
 const /** RegExp */ emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
@@ -52,12 +53,35 @@ createAcc.onclick = function() {
       'spellcheck': 'false',
     });
 
+    const /** Element */ chkLabel = document.createElement('label');
+    setAttributes(chkLabel, {
+      'class': 'checkbox-label',
+      'id': 'chkLabel',
+      'tabindex': '5',
+    });
+    chkLabel.textContent = 'Accept termenii și condițiile';
+
+    const /** Element */ chkBox = document.createElement('input');
+    setAttributes(chkBox, {
+      'id': 'chkBox',
+      'name': 'chkBox',
+      'required': '',
+      'type': 'checkbox',
+    });
+
+    const /** Element */ submitButton = document.getElementById('submitB');
+    submitForm.insertBefore(repeatPass, submitButton);
+    submitForm.insertBefore(email, submitButton);
+    submitForm.insertBefore(chkLabel, submitButton);
+    chkLabel.insertAdjacentElement('afterbegin', chkBox);
+
     setAttributes(passBox, {'autocomplete': 'new-password'});
     setAttributes(submitForm, {'action': 'createUser'});
 
-    submitForm.insertBefore(repeatPass, document.getElementById('submitB'));
-    submitForm.insertBefore(email, document.getElementById('submitB'));
-    repeatBoxEnabled = true;
+    lText.textContent = 'Creare cont';
+    createAcc.textContent = 'Ai cont? Loghează-te!';
+
+    checkLabel = document.getElementById('chkLabel');
 
     repeatBox = document.getElementById('repeatPassword');
     repeatBox.onkeyup = function() {
@@ -95,8 +119,13 @@ createAcc.onclick = function() {
       }
     };
 
-    lText.textContent = 'Creare cont';
-    createAcc.textContent = 'Ai cont? Loghează-te!';
+    emailBox.onkeydown = function(e) {
+      if (e.which == 32 || e.key == '>' || e.key == '<') {
+        e.preventDefault();
+      }
+    };
+
+    repeatBoxEnabled = true;
 
     userBox.onblur();
   } else {
@@ -117,6 +146,7 @@ userBox.onkeyup = function() {
 };
 
 userBox.onblur = function() {
+  userBox.value = userBox.value.replace(/[\s<>]/g, '');
   if (repeatBoxEnabled) {
     if (userBox.className == green) {
       xhr('POST', '/usernameExists', {'username': userBox.value}, function(r) {
@@ -127,6 +157,12 @@ userBox.onblur = function() {
     }
   } else {
     userBox.onkeyup();
+  }
+};
+
+userBox.onkeydown = function(e) {
+  if (e.which == 32 || e.key == '>' || e.key == '<') {
+    e.preventDefault();
   }
 };
 
@@ -154,7 +190,7 @@ submitForm.addEventListener('submit', function(/** Event */ e) {
       if (repeatBoxEnabled) {
         if (repeatBox.className == green) {
           if (emailBox.className == green) {
-            xhr('POST', '/createUser', {'username': userBox.value, 'password': passBox.value, 'email': emailBox.value}, function(r) {
+            xhr('POST', '/createUser', {'username': userBox.value, 'password': passBox.value, 'email': emailBox.value, 'policy': document.getElementById('chkBox').checked}, function(r) {
               removeCreateUser();
               submitForm.reset();
               userBox.className = gray;
@@ -255,6 +291,8 @@ function passCheck(str) {
 function removeCreateUser() {
   lText.parentNode.removeChild(repeatBox);
   lText.parentNode.removeChild(emailBox);
+  lText.parentNode.removeChild(checkLabel);
+
   repeatBoxEnabled = false;
 
   setAttributes(passBox, {'autocomplete': 'current-password'});

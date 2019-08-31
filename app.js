@@ -141,10 +141,14 @@ app.post('/loginUser', function(req, res) {
 });
 
 app.post('/createUser', function(req, res) {
-  if (req.body.username && req.body.password && req.body.email) {
-    auth.createUser(req.body.username, req.body.password, req.body.email).then((f) => {
-      res.send(f);
-    }, (r) => console.log);
+  if (req.body.username && req.body.password && req.body.email && req.body.policy) {
+    if (req.body.policy == true) {
+      auth.createUser(req.body.username, req.body.password, req.body.email).then((f) => {
+        res.send(f);
+      }, (r) => console.log);
+    } else {
+      res.send('POLICY_NOT_ACCEPTED');
+    }
   } else {
     res.status(400).send('Cererea nu este corectă! Ieși acas\'!');
   }
