@@ -19,6 +19,7 @@ let /** Element */ emailBox;
 let /** Element */ checkLabel;
 let /** boolean */ repeatBoxEnabled = false;
 
+const /** RegExp */ userRegexp = /^[a-zA-Z\d][a-zA-Z\d!?$^&*._-]{5,39}$/;
 const /** RegExp */ emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
 
 forgotPass.onclick = function() {
@@ -120,7 +121,7 @@ createAcc.onclick = function() {
     };
 
     emailBox.onkeydown = function(e) {
-      if (e.which == 32 || e.key == '>' || e.key == '<') {
+      if (e.which == 32) {
         e.preventDefault();
       }
     };
@@ -134,7 +135,7 @@ createAcc.onclick = function() {
 };
 
 userBox.onkeyup = function() {
-  if (userBox.value.length >= 6 && userBox.value.length <= 40) {
+  if (userRegexp.test(userBox.value)) {
     userBox.className = green;
   } else {
     if (userBox.value.length != 0) {
@@ -146,7 +147,6 @@ userBox.onkeyup = function() {
 };
 
 userBox.onblur = function() {
-  userBox.value = userBox.value.replace(/[\s<>]/g, '');
   if (repeatBoxEnabled) {
     if (userBox.className == green) {
       xhr('POST', '/usernameExists', {'username': userBox.value}, function(r) {
@@ -161,13 +161,13 @@ userBox.onblur = function() {
 };
 
 userBox.onkeydown = function(e) {
-  if (e.which == 32 || e.key == '>' || e.key == '<') {
+  if (e.which == 32) {
     e.preventDefault();
   }
 };
 
 passBox.onkeyup = function() {
-  if (passBox.value.length >= 8 && passBox.value.length <= 100 && passCheck(passBox.value) == true) {
+  if (passCheck(passBox.value) == true) {
     passBox.className = green;
     if (repeatBoxEnabled) {
       repeatBox.onkeyup(null);
@@ -184,7 +184,7 @@ passBox.onkeyup = function() {
   }
 };
 
-submitForm.addEventListener('submit', function(/** Event */ e) {
+submitForm.addEventListener('submit', function(e) {
   if (userBox.className == green) {
     if (passBox.className == green) {
       if (repeatBoxEnabled) {
@@ -223,25 +223,25 @@ submitForm.addEventListener('submit', function(/** Event */ e) {
         });
       }
     } else {
-      if (passBox.value.length >= 8 && passBox.value.length <= 100) {
-        const chk = passCheck(passBox.value);
-        let /** string */ err = 'Parola trebuie să conțină cel puțin:\n';
-        if (!chk[0]) err += '- un caracter minuscul\n';
-        if (!chk[1]) err += '- un caracter majuscul\n';
-        if (!chk[2]) err += '- o cifră\n';
-        if (!chk[3]) err += '- un caracter special\n';
-        snackbar(err, 2);
+      const /** boolean|Array{boolean} */ chk = passCheck(passBox.value);
+      if (!chk[0]) {
+        snackbar('Parola trebuie să conțină minim 8 caractere!', 2);
       } else {
-        snackbar('Parola trebuie să conțină minimum 8 caractere!', 2);
+        let /** string */ err = 'Parola trebuie să conțină cel puțin:\n';
+        if (!chk[1]) err += '- un caracter majuscul\n';
+        if (!chk[2]) err += '- un caracter minuscul\n';
+        if (!chk[3]) err += '- o cifră\n';
+        if (!chk[4]) err += '- un caracter special\n';
+        snackbar(err, 2);
       }
     }
   } else {
-    if (userBox.value.length >= 6 && userBox.value.length <= 40) {
+    if (userRegexp.test(userBox.value)) {
       if (repeatBoxEnabled) {
         snackbar('Numele de utilizator există deja!', 2);
       }
     } else {
-      snackbar('Numele de utilizator trebuie să conțină minimum 6 caractere!', 2);
+      snackbar('Numele de utilizator trebuie să conțină minim 6 caractere și să înceapă cu un caracter alfanumeric. Simbolurile acceptate sunt: !?$^&*._-', 2);
     }
   }
   e.preventDefault();
@@ -249,44 +249,48 @@ submitForm.addEventListener('submit', function(/** Event */ e) {
 
 /**
  * Checks if the password requirements are met
- * @param {string} str Password
- * @return {boolean|Array<boolean>} True if password is valid, boolean array with all check results
+ * @param {string} pass Password
+ * @return {boolean|Array<boolean>} True if password is valid, boolean array with all check results otherwise
  */
-function passCheck(str) {
-  let /** boolean */ mare = false;
-  let /** boolean */ mica = false;
-  let /** boolean */ cifra = false;
+function passCheck(pass) {
+  let /** boolean */ length = false;
+  let /** boolean */ uppercase = false;
+  let /** boolean */ lowercase = false;
+  let /** boolean */ digit = false;
   let /** boolean */ special = false;
-  for (let i = 0; i < str.length; i++) {
-    const /** string */ c = str.charAt(i);
-    if (mare && mica && cifra && special) {
-      return true;
-    } else {
-      if (!mare && c >= 'A' && c <= 'Z') {
-        mare = true;
-        continue;
-      }
-      if (!mica && c >= 'a' && c <= 'z') {
-        mica = true;
-        continue;
-      }
-      if (!cifra && c >= '0' && c <= '9') {
-        cifra = true;
-        continue;
-      }
-      if (!special && (c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9')) {
-        special = true;
+  if (pass.length >= 8) {
+    length = true;
+    for (let i = 0; i < pass.length; i++) {
+      const c = pass.charAt(i);
+      if (uppercase && lowercase && digit && special && length) {
+        return true;
+      } else {
+        if (!uppercase && c >= 'A' && c <= 'Z') {
+          uppercase = true;
+          continue;
+        }
+        if (!lowercase && c >= 'a' && c <= 'z') {
+          lowercase = true;
+          continue;
+        }
+        if (!digit && c >= '0' && c <= '9') {
+          digit = true;
+          continue;
+        }
+        if (!special && (c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9')) {
+          special = true;
+        }
       }
     }
   }
-  if (mare && mica && cifra && special) {
+  if (uppercase && lowercase && digit && special && length) {
     return true;
   }
-  return [mare, mica, cifra, special];
+  return [length, uppercase, lowercase, digit, special];
 }
 
 /**
- * Removes the password repeat input box
+ * Removes the inputs used for creating an account
  */
 function removeCreateUser() {
   lText.parentNode.removeChild(repeatBox);

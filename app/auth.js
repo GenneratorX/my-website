@@ -6,7 +6,9 @@ const querystring = require('querystring');
 const nodemailer = require('nodemailer');
 
 const db = require('./db');
+const util = require('./util');
 
+const userRegexp = /^[a-zA-Z\d][a-zA-Z\d!?$^&*._-]{5,39}$/;
 const emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
 const hashOptions = {
   type: argon.argon2d,
@@ -39,7 +41,7 @@ module.exports = {createUser, loginUser, enableUser, usernameExists, emailExists
  * @return {Promise<boolean|string>} True if the user was created, error string otherwise
  */
 async function createUser(usr, pass, email, uType = 1, uActive = 0) {
-  if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100 && passwordCheck(pass) && emailRegexp.test(email)) {
+  if (userRegexp.test(usr) && passwordCheck(pass) && emailRegexp.test(email)) {
     if (! await usernameExists(usr)) {
       if (! await emailExists(email)) {
         await db.query('INSERT INTO users VALUES (DEFAULT, $1, $2, LOWER($3), $4, $5, DEFAULT, $6);', [usr, await argon.hash(pass, hashOptions), email, uType, uActive, new Date()]);
@@ -48,8 +50,9 @@ async function createUser(usr, pass, email, uType = 1, uActive = 0) {
         transporter.sendMail({
           from: `"Gennerator" <${process.env.EMAIL_USERNAME}>`,
           to: `"${usr}" <${email.toLowerCase()}>`,
-          subject: 'Confirmă contul creat!',
-          html: `<!DOCTYPE html><html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body><h1>Uite linkul de activare:</h1><b>https://gennerator.com/activate?act=${querystring.escape(actCode)}</b><h2>*Hint: Dăi click pe linkul de mai sus!</h2><body></html>`,
+          replyTo: `"Contact" <${process.env.EMAIL_REPLYTO}>`,
+          subject: 'Confirmă contul creat',
+          html: `<!DOCTYPE html><html lang="ro" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml"><head><title>Bine ai venit!</title><!--[if !mso]><!-- --><meta content="IE=edge" http-equiv="X-UA-Compatible"><!--<![endif]--><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"><meta content="width=device-width,initial-scale=1" name="viewport"><style>#outlook a{padding:0}.ExternalClass,.ReadMsgBody{width:100%}.ExternalClass *{line-height:100%}body{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;margin:0;padding:0}table,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}img{-ms-interpolation-mode:bicubic;border:0;height:auto;line-height:100%;outline:0;text-decoration:none}p{display:block;margin:13px 0}</style><!--[if !mso]><!--><style>@media only screen and (max-width:480px){@-ms-viewport{width:320px}@viewport{width:320px}}</style><!--<![endif]--><!--[if mso]><xml><o:officedocumentsettings><o:allowpng><o:pixelsperinch>96</o:pixelsperinch></o:officedocumentsettings></xml><![endif]--><!--[if lte mso 11]><style>.outlook-group-fix{width:100%!important}</style><![endif]--><style>@media only screen and (min-width:6in){.mj-column-per-100{max-width:100%;width:100%!important}}</style></head><body style="background-color:#232323"><div style="color:#fff;display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden">Activează contul creat</div><div style="background-color:#232323"><!--[if mso | IE]><table border="0" cellpadding="0" cellspacing="0" align="center" style="width:600px" width="600"><tr><td style="font-size:0;line-height:0;mso-line-height-rule:exactly"><![endif]--><div style="background:#363636;background-color:#363636;margin:0 auto;max-width:600px"><table border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#363636;background-color:#363636;width:100%" align="center"><tbody><tr><td style="direction:ltr;font-size:0;padding:20px 0;text-align:center;vertical-align:top"><!--[if mso | IE]><table border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td style="vertical-align:top;width:600px"><![endif]--><div style="direction:ltr;display:inline-block;font-size:13px;text-align:left;vertical-align:top;width:100%" class="mj-column-per-100 outlook-group-fix"><table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top" width="100%"><tr><td style="font-size:0;padding:10px 25px;word-break:break-word" align="left"><div style="color:#fff;font-family:Helvetica;font-size:23px;font-weight:200;line-height:1;text-align:left">${util.greetingMessage()}, <b>${usr}</b>!</div></td></tr><tr><td style="font-size:0;padding:10px 25px;word-break:break-word"><p style="border-top:solid 4px #232323;font-size:1;margin:0 auto;width:100%"></p><!--[if mso | IE]><table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-top:solid 4px #232323;font-size:1;margin:0 auto;width:550px" align="center" width="550px"><tr><td style="height:0;line-height:0"></td></tr></table><![endif]--></td></tr><tr><td style="font-size:0;padding:10px 25px;word-break:break-word" align="left"><div style="color:#fff;font-family:Helvetica;font-size:23px;font-weight:200;line-height:1;text-align:left">Apasă butonul de mai jos pentru a activa contul!</div></td></tr><tr><td style="font-size:0;padding:10px 25px;word-break:break-word" align="center" vertical-align="middle"><table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%"><tr><td style="background:#232323;border:0;border-radius:3px;cursor:auto;padding:10px 25px" align="center" bgcolor="#232323" role="presentation" valign="middle"><a href="https://gennerator.com/activate?act=${querystring.escape(actCode)}" style="background:#232323;color:#fff;font-family:Helvetica;font-size:23px;font-weight:700;line-height:120%;margin:0;text-decoration:none;text-transform:none" target="_blank">ACTIVARE</a></td></tr></table></td></tr></table></div><!--[if mso | IE]><![endif]--></td></tr></tbody></table></div><!--[if mso | IE]><![endif]--></div></body></html>`,
         });
         return true;
       } else {
@@ -136,33 +139,37 @@ async function emailExists(email) {
  * @return {boolean} True if password is valid, false otherwise
  */
 function passwordCheck(pass) {
-  let mare = false;
-  let mica = false;
-  let cifra = false;
+  let length = false;
+  let uppercase = false;
+  let lowercase = false;
+  let digit = false;
   let special = false;
-  for (let i = 0; i < pass.length; i++) {
-    const c = pass.charAt(i);
-    if (mare && mica && cifra && special) {
-      return true;
-    } else {
-      if (!mare && c >= 'A' && c <= 'Z') {
-        mare = true;
-        continue;
-      }
-      if (!mica && c >= 'a' && c <= 'z') {
-        mica = true;
-        continue;
-      }
-      if (!cifra && c >= '0' && c <= '9') {
-        cifra = true;
-        continue;
-      }
-      if (!special && (c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9')) {
-        special = true;
+  if (pass.length >= 8) {
+    length = true;
+    for (let i = 0; i < pass.length; i++) {
+      const c = pass.charAt(i);
+      if (uppercase && lowercase && digit && special && length) {
+        return true;
+      } else {
+        if (!uppercase && c >= 'A' && c <= 'Z') {
+          uppercase = true;
+          continue;
+        }
+        if (!lowercase && c >= 'a' && c <= 'z') {
+          lowercase = true;
+          continue;
+        }
+        if (!digit && c >= '0' && c <= '9') {
+          digit = true;
+          continue;
+        }
+        if (!special && (c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9')) {
+          special = true;
+        }
       }
     }
   }
-  if (mare && mica && cifra && special) {
+  if (uppercase && lowercase && digit && special && length) {
     return true;
   }
   return false;

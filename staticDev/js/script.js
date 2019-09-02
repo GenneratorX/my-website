@@ -87,5 +87,5 @@ function snackbar(msg, type = 0) {
   setTimeout(function() {
     snackB.className = '';
     snackB.parentNode.removeChild(snackB);
-  }, 3000);
+  }, 4000);
 }
