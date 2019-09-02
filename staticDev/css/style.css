@@ -68,11 +68,22 @@ a.auth {
   font-weight: 700;
 }
 
-a.auth:hover {
+.right {
+  color: #fff;
+  font-size: 1.3rem;
+  margin: auto 0.5rem auto auto;
+}
+
+a.right {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+a.auth:hover,
+a.right:hover {
   text-decoration: underline;
 }
 
-.right,
 a.login {
   color: #fff;
   font-size: 1.3rem;
@@ -224,7 +235,7 @@ input:hover[type="submit"] {
 }
 
 #snackbar.show {
-  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  animation: fadein 0.5s, fadeout 0.5s 3.5s;
   visibility: visible;
 }
 
