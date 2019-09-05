@@ -3,7 +3,7 @@
 const pg = require('pg');
 const pool = new pg.Pool({host: '/var/run/postgresql', max: 20});
 
-module.exports = {query, pool};
+module.exports = {query};
 
 /**
  * Querries the database

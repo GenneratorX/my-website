@@ -3,9 +3,12 @@ require('./env');
 
 const express = require('express');
 const exhb = require('express-handlebars');
-const session = require('express-session');
-const PgSession = require('connect-pg-simple')(session);
 const bodyParser = require('body-parser');
+const session = require('express-session');
+const Redis = require('ioredis');
+const RedisStore = require('connect-redis')(session);
+const {RateLimiterRedis} = require('rate-limiter-flexible');
+
 const crypto = require('crypto');
 
 const auth = require('./app/auth');
@@ -13,13 +16,20 @@ const db = require('./app/db');
 const util = require('./app/util');
 
 const app = express();
-
 app.engine('handlebars', exhb());
-app.set('view engine', 'handlebars');
 
+app.set('view engine', 'handlebars');
 app.set('x-powered-by', false);
 app.set('etag', false);
 app.set('trust proxy', '127.0.0.1');
+
+const client = new Redis({enableOfflineQueue: false});
+
+const rateLimiterRedis = new RateLimiterRedis({
+  storeClient: client,
+  points: 6,
+  duration: 60,
+});
 
 app.use(bodyParser.json({
   strict: true,
@@ -38,16 +48,21 @@ app.use(session({
     maxAge: null,
     sameSite: true,
   },
-  store: new PgSession({
-    pool: db.pool,
-    ttl: 43200, // 12 hours
-  }),
+  store: new RedisStore({client}),
   genid: function(req) {
     if (req.originalUrl == '/loginUser') {
       return crypto.randomBytes(128).toString('base64');
     }
   },
 }));
+
+const rateLimiter = (req, res, next) => {
+  rateLimiterRedis.consume(req.ip).then(() => {
+    next();
+  }).catch((e) => {
+    res.status(429).send('RATE_LIMIT');
+  });
+};
 
 app.get('*', function(req, res, next) {
   crypto.randomBytes(16, (e, b) => {
@@ -122,7 +137,7 @@ app.get('/logOut', function(req, res) {
   }
 });
 
-app.post('/loginUser', function(req, res) {
+app.post('/loginUser', rateLimiter, function(req, res) {
   if (req.body.username && req.body.password) {
     auth.loginUser(req.body.username, req.body.password).then( (f) => {
       if (f == true) {
@@ -140,7 +155,7 @@ app.post('/loginUser', function(req, res) {
   }
 });
 
-app.post('/createUser', function(req, res) {
+app.post('/createUser', rateLimiter, function(req, res) {
   if (req.body.username && req.body.password && req.body.email && req.body.policy) {
     if (req.body.policy == true) {
       auth.createUser(req.body.username, req.body.password, req.body.email).then((f) => {

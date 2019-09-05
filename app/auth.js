@@ -139,13 +139,11 @@ async function emailExists(email) {
  * @return {boolean} True if password is valid, false otherwise
  */
 function passwordCheck(pass) {
-  let length = false;
   let uppercase = false;
   let lowercase = false;
   let digit = false;
   let special = false;
   if (pass.length >= 8) {
-    length = true;
     for (let i = 0; i < pass.length; i++) {
       const c = pass.charAt(i);
       if (uppercase && lowercase && digit && special && length) {
@@ -169,7 +167,7 @@ function passwordCheck(pass) {
       }
     }
   }
-  if (uppercase && lowercase && digit && special && length) {
+  if (uppercase && lowercase && digit && special) {
     return true;
   }
   return false;

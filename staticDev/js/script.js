@@ -85,7 +85,9 @@ function snackbar(msg, type = 0) {
   document.body.appendChild(snackB);
   snackB.className = 'show';
   setTimeout(function() {
-    snackB.className = '';
-    snackB.parentNode.removeChild(snackB);
+    if (snackB) {
+      snackB.className = '';
+      snackB.parentNode.removeChild(snackB);
+    }
   }, 4000);
 }

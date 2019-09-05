@@ -191,11 +191,15 @@ submitForm.addEventListener('submit', function(e) {
         if (repeatBox.className == green) {
           if (emailBox.className == green) {
             xhr('POST', '/createUser', {'username': userBox.value, 'password': passBox.value, 'email': emailBox.value, 'policy': document.getElementById('chkBox').checked}, function(r) {
-              removeCreateUser();
-              submitForm.reset();
-              userBox.className = gray;
-              passBox.className = gray;
-              snackbar('Cont creat cu succes!');
+              if (r != 'RATE_LIMIT') {
+                removeCreateUser();
+                submitForm.reset();
+                userBox.className = gray;
+                passBox.className = gray;
+                snackbar('Cont creat cu succes!');
+              } else {
+                snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 2);
+              }
             });
           } else {
             if (emailRegexp.test(emailBox.value)) {
@@ -214,6 +218,7 @@ submitForm.addEventListener('submit', function(e) {
           switch (r) {
             case 'USER_DISABLED': snackbar('Contul este dezactivat! Verifică adresa de e-mail înregistrată pentru activarea contului.', 3); break;
             case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
+            case 'RATE_LIMIT': snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 2); break;
             default:
               document.body.innerHTML = r;
               setTimeout(function() {
@@ -262,7 +267,7 @@ function passCheck(pass) {
     length = true;
     for (let i = 0; i < pass.length; i++) {
       const c = pass.charAt(i);
-      if (uppercase && lowercase && digit && special && length) {
+      if (uppercase && lowercase && digit && special) {
         return true;
       } else {
         if (!uppercase && c >= 'A' && c <= 'Z') {
@@ -283,7 +288,7 @@ function passCheck(pass) {
       }
     }
   }
-  if (uppercase && lowercase && digit && special && length) {
+  if (uppercase && lowercase && digit && special) {
     return true;
   }
   return [length, uppercase, lowercase, digit, special];
