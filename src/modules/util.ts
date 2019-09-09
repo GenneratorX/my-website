@@ -1,8 +1,6 @@
 'use strict';
 
-module.exports = {greetingMessage};
-
-function greetingMessage() {
+export function greetingMessage(): 'Ziua bună' | 'Bună seara' | 'Neața' {
   const currDate = new Date();
   if (currDate.getHours() >= 8 && currDate.getHours() < 18) {
     return 'Ziua bună';

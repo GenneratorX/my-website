@@ -1,34 +1,34 @@
 /** @preserve login.js */
 'use strict';
 
-const /** Element */ submitForm = document.getElementById('auth');
+const submitForm = (document.getElementById('auth') as HTMLFormElement);
 
-const /** Element */ createAcc = document.getElementById('createAcc');
-const /** Element */ forgotPass = document.getElementById('forgotPass');
-const /** Element */ lText = document.getElementById('lText');
+const userBox = (document.getElementById('username') as HTMLInputElement);
+const passBox = (document.getElementById('password') as HTMLInputElement);
 
-const /** Element */ userBox = document.getElementById('username');
-const /** Element */ passBox = document.getElementById('password');
+const createAcc = (document.getElementById('createAcc') as HTMLAnchorElement);
+const forgotPass = (document.getElementById('forgotPass') as HTMLAnchorElement);
+const lText = (document.getElementById('lText') as HTMLParagraphElement);
 
-const /** string */ green = 'login lGreen';
-const /** string */ red = 'login lRed';
-const /** string */ gray = 'login';
+let repeatBox: HTMLInputElement;
+let emailBox: HTMLInputElement;
+let checkLabel: HTMLLabelElement;
+let repeatBoxEnabled = false;
 
-let /** Element */ repeatBox;
-let /** Element */ emailBox;
-let /** Element */ checkLabel;
-let /** boolean */ repeatBoxEnabled = false;
+const green = 'login lGreen';
+const red = 'login lRed';
+const gray = 'login';
 
-const /** RegExp */ userRegexp = /^[a-zA-Z\d][a-zA-Z\d!?$^&*._-]{5,39}$/;
-const /** RegExp */ emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
+const userRegexp = /^[a-zA-Z\d][a-zA-Z\d!?$^&*._-]{5,39}$/;
+const emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
 
-forgotPass.onclick = function() {
-  snackbar('Asta e! 🤷‍♂️');
+forgotPass.onclick = function(): void {
+  snackbar('Asta e! 🤷‍♂️', 0);
 };
 
-createAcc.onclick = function() {
+createAcc.onclick = function(): void {
   if (!repeatBoxEnabled) {
-    const /** Element */ repeatPass = document.createElement('input');
+    const repeatPass = document.createElement('input');
     setAttributes(repeatPass, {
       'class': 'login',
       'id': 'repeatPassword',
@@ -40,7 +40,7 @@ createAcc.onclick = function() {
       'type': 'password',
     });
 
-    const /** Element */ email = document.createElement('input');
+    const email = document.createElement('input');
     setAttributes(email, {
       'class': 'login',
       'id': 'email',
@@ -54,7 +54,7 @@ createAcc.onclick = function() {
       'spellcheck': 'false',
     });
 
-    const /** Element */ chkLabel = document.createElement('label');
+    const chkLabel = document.createElement('label');
     setAttributes(chkLabel, {
       'class': 'checkbox-label',
       'id': 'chkLabel',
@@ -62,7 +62,7 @@ createAcc.onclick = function() {
     });
     chkLabel.textContent = 'Accept termenii și condițiile';
 
-    const /** Element */ chkBox = document.createElement('input');
+    const chkBox = document.createElement('input');
     setAttributes(chkBox, {
       'id': 'chkBox',
       'name': 'chkBox',
@@ -70,7 +70,8 @@ createAcc.onclick = function() {
       'type': 'checkbox',
     });
 
-    const /** Element */ submitButton = document.getElementById('submitB');
+    const submitButton = (document.getElementById('submitB') as HTMLInputElement);
+
     submitForm.insertBefore(repeatPass, submitButton);
     submitForm.insertBefore(email, submitButton);
     submitForm.insertBefore(chkLabel, submitButton);
@@ -82,59 +83,30 @@ createAcc.onclick = function() {
     lText.textContent = 'Creare cont';
     createAcc.textContent = 'Ai cont? Loghează-te!';
 
-    checkLabel = document.getElementById('chkLabel');
+    repeatBox = (document.getElementById('repeatPassword') as HTMLInputElement);
+    emailBox = (document.getElementById('email') as HTMLInputElement);
+    checkLabel = (document.getElementById('chkLabel') as HTMLLabelElement);
 
-    repeatBox = document.getElementById('repeatPassword');
-    repeatBox.onkeyup = function() {
-      if (passBox.className == green) {
-        if (passBox.value == repeatBox.value) {
-          repeatBox.className = green;
-        } else {
-          repeatBox.className = red;
-        }
-      } else {
-        repeatBox.className = gray;
-      }
-    };
-
-    emailBox = document.getElementById('email');
-    emailBox.onkeyup = function() {
-      if (emailRegexp.test(emailBox.value)) {
-        emailBox.className = green;
-      } else {
-        if (emailBox.value.length != 0) {
-          emailBox.className = red;
-        } else {
-          emailBox.className = gray;
-        }
-      }
-    };
-
-    emailBox.onblur = function() {
-      if (emailBox.className == green) {
-        xhr('POST', '/emailExists', {'email': emailBox.value}, function(r) {
-          if (r == 'true') {
-            emailBox.className = red;
-          }
-        });
-      }
-    };
-
-    emailBox.onkeydown = function(e) {
-      if (e.which == 32) {
-        e.preventDefault();
-      }
-    };
+    repeatBox.onkeyup = repeatBoxKeyUp;
+    emailBox.onkeyup = emailBoxKeyUp;
+    emailBox.onblur = emailBoxBlur;
+    emailBox.onkeydown = emailBoxKeyDown;
 
     repeatBoxEnabled = true;
-
-    userBox.onblur();
+    userBox.blur();
   } else {
     removeCreateUser();
   }
 };
 
-userBox.onkeyup = function() {
+userBox.onkeyup = userBoxKeyUp;
+userBox.onblur = userBoxBlur;
+userBox.onkeydown = userBoxKeyDown;
+passBox.onkeyup = passBoxKeyUp;
+
+// EventHandler functions
+
+function userBoxKeyUp(): void {
   if (userRegexp.test(userBox.value)) {
     userBox.className = green;
   } else {
@@ -144,9 +116,15 @@ userBox.onkeyup = function() {
       userBox.className = gray;
     }
   }
-};
+}
 
-userBox.onblur = function() {
+function userBoxKeyDown(e: KeyboardEvent): void {
+  if (e.which == 32) {
+    e.preventDefault();
+  }
+}
+
+function userBoxBlur(): void {
   if (repeatBoxEnabled) {
     if (userBox.className == green) {
       xhr('POST', '/usernameExists', {'username': userBox.value}, function(r) {
@@ -156,21 +134,15 @@ userBox.onblur = function() {
       });
     }
   } else {
-    userBox.onkeyup();
+    userBoxKeyUp();
   }
-};
+}
 
-userBox.onkeydown = function(e) {
-  if (e.which == 32) {
-    e.preventDefault();
-  }
-};
-
-passBox.onkeyup = function() {
+function passBoxKeyUp(): void {
   if (passCheck(passBox.value) == true) {
     passBox.className = green;
     if (repeatBoxEnabled) {
-      repeatBox.onkeyup(null);
+      repeatBoxKeyUp();
     }
   } else {
     if (passBox.value.length != 0) {
@@ -178,11 +150,51 @@ passBox.onkeyup = function() {
     } else {
       passBox.className = gray;
       if (repeatBoxEnabled) {
-        repeatBox.onkeyup(null);
+        repeatBoxKeyUp();
       }
     }
   }
-};
+}
+
+function repeatBoxKeyUp(): void {
+  if (passBox.className == green) {
+    if (passBox.value == repeatBox.value) {
+      repeatBox.className = green;
+    } else {
+      repeatBox.className = red;
+    }
+  } else {
+    repeatBox.className = gray;
+  }
+}
+
+function emailBoxKeyUp(): void {
+  if (emailRegexp.test(emailBox.value)) {
+    emailBox.className = green;
+  } else {
+    if (emailBox.value.length != 0) {
+      emailBox.className = red;
+    } else {
+      emailBox.className = gray;
+    }
+  }
+}
+
+function emailBoxBlur(): void {
+  if (emailBox.className == green) {
+    xhr('POST', '/emailExists', {'email': emailBox.value}, function(r) {
+      if (r == 'true') {
+        emailBox.className = red;
+      }
+    });
+  }
+}
+
+function emailBoxKeyDown(e: KeyboardEvent): void {
+  if (e.which == 32) {
+    e.preventDefault();
+  }
+}
 
 submitForm.addEventListener('submit', function(e) {
   if (userBox.className == green) {
@@ -190,13 +202,13 @@ submitForm.addEventListener('submit', function(e) {
       if (repeatBoxEnabled) {
         if (repeatBox.className == green) {
           if (emailBox.className == green) {
-            xhr('POST', '/createUser', {'username': userBox.value, 'password': passBox.value, 'email': emailBox.value, 'policy': document.getElementById('chkBox').checked}, function(r) {
+            xhr('POST', '/createUser', {'username': userBox.value, 'password': passBox.value, 'email': emailBox.value, 'policy': (document.getElementById('chkBox') as HTMLInputElement).checked}, function(r) {
               if (r != 'RATE_LIMIT') {
                 removeCreateUser();
                 submitForm.reset();
                 userBox.className = gray;
                 passBox.className = gray;
-                snackbar('Cont creat cu succes!');
+                snackbar('Cont creat cu succes!', 0);
               } else {
                 snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 2);
               }
@@ -228,16 +240,18 @@ submitForm.addEventListener('submit', function(e) {
         });
       }
     } else {
-      const /** boolean|Array{boolean} */ chk = passCheck(passBox.value);
-      if (!chk[0]) {
-        snackbar('Parola trebuie să conțină minim 8 caractere!', 2);
-      } else {
-        let /** string */ err = 'Parola trebuie să conțină cel puțin:\n';
-        if (!chk[1]) err += '- un caracter majuscul\n';
-        if (!chk[2]) err += '- un caracter minuscul\n';
-        if (!chk[3]) err += '- o cifră\n';
-        if (!chk[4]) err += '- un caracter special\n';
-        snackbar(err, 2);
+      const chk = passCheck(passBox.value);
+      if (!chk) {
+        if (!chk[0]) {
+          snackbar('Parola trebuie să conțină minim 8 caractere!', 2);
+        } else {
+          let err = 'Parola trebuie să conțină cel puțin:\n';
+          if (!chk[1]) err += '- un caracter majuscul\n';
+          if (!chk[2]) err += '- un caracter minuscul\n';
+          if (!chk[3]) err += '- o cifră\n';
+          if (!chk[4]) err += '- un caracter special\n';
+          snackbar(err, 2);
+        }
       }
     }
   } else {
@@ -254,15 +268,15 @@ submitForm.addEventListener('submit', function(e) {
 
 /**
  * Checks if the password requirements are met
- * @param {string} pass Password
- * @return {boolean|Array<boolean>} True if password is valid, boolean array with all check results otherwise
+ * @param pass The password
+ * @return True if password is valid, boolean array with all check results otherwise
  */
-function passCheck(pass) {
-  let /** boolean */ length = false;
-  let /** boolean */ uppercase = false;
-  let /** boolean */ lowercase = false;
-  let /** boolean */ digit = false;
-  let /** boolean */ special = false;
+function passCheck(pass: string): true | boolean[] {
+  let length = false;
+  let uppercase = false;
+  let lowercase = false;
+  let digit = false;
+  let special = false;
   if (pass.length >= 8) {
     length = true;
     for (let i = 0; i < pass.length; i++) {
@@ -297,10 +311,10 @@ function passCheck(pass) {
 /**
  * Removes the inputs used for creating an account
  */
-function removeCreateUser() {
-  lText.parentNode.removeChild(repeatBox);
-  lText.parentNode.removeChild(emailBox);
-  lText.parentNode.removeChild(checkLabel);
+function removeCreateUser(): void {
+  submitForm.removeChild(repeatBox);
+  submitForm.removeChild(emailBox);
+  submitForm.removeChild(checkLabel);
 
   repeatBoxEnabled = false;
 
@@ -310,5 +324,5 @@ function removeCreateUser() {
   lText.textContent = 'Login';
   createAcc.textContent = 'Nu ai cont? Creează unul!';
 
-  userBox.onblur();
+  userBox.blur();
 }

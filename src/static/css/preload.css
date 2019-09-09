@@ -1,5 +1,6 @@
 html {
   background-color: #232323;
   opacity: 0;
+  overflow: hidden;
   visibility: hidden;
 }
