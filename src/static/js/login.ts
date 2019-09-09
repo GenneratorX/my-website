@@ -93,7 +93,7 @@ createAcc.onclick = function(): void {
     emailBox.onkeydown = emailBoxKeyDown;
 
     repeatBoxEnabled = true;
-    userBox.blur();
+    userBoxBlur();
   } else {
     removeCreateUser();
   }
@@ -127,11 +127,20 @@ function userBoxKeyDown(e: KeyboardEvent): void {
 function userBoxBlur(): void {
   if (repeatBoxEnabled) {
     if (userBox.className == green) {
-      xhr('POST', '/usernameExists', {'username': userBox.value}, function(r) {
-        if (r == 'true') {
+      fetcH('POST', '/usernameExists', {'username': userBox.value})
+        .then((res) => {
+          if (res['response'] == true) {
+            userBox.className = red;
+          }
+        })
+        .catch((err) => {
           userBox.className = red;
-        }
-      });
+          if (err.message == '502') {
+            snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2);
+          } else {
+            snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
+          }
+        });
     }
   } else {
     userBoxKeyUp();
@@ -182,11 +191,20 @@ function emailBoxKeyUp(): void {
 
 function emailBoxBlur(): void {
   if (emailBox.className == green) {
-    xhr('POST', '/emailExists', {'email': emailBox.value}, function(r) {
-      if (r == 'true') {
+    fetcH('POST', '/emailExists', {'email': emailBox.value})
+      .then((res) => {
+        if (res['response'] == true) {
+          emailBox.className = red;
+        }
+      })
+      .catch((err) => {
         emailBox.className = red;
-      }
-    });
+        if (err.message == '502') {
+          snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2);
+        } else {
+          snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
+        }
+      });
   }
 }
 
@@ -202,17 +220,33 @@ submitForm.addEventListener('submit', function(e) {
       if (repeatBoxEnabled) {
         if (repeatBox.className == green) {
           if (emailBox.className == green) {
-            xhr('POST', '/createUser', {'username': userBox.value, 'password': passBox.value, 'email': emailBox.value, 'policy': (document.getElementById('chkBox') as HTMLInputElement).checked}, function(r) {
-              if (r != 'RATE_LIMIT') {
-                removeCreateUser();
-                submitForm.reset();
-                userBox.className = gray;
-                passBox.className = gray;
-                snackbar('Cont creat cu succes!', 0);
-              } else {
-                snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 2);
-              }
-            });
+            fetcH('POST', '/createUser', {
+              'username': userBox.value,
+              'password': passBox.value,
+              'email': emailBox.value,
+              'policy': (document.getElementById('chkBox') as HTMLInputElement).checked,
+            })
+              .then((res) => {
+                switch (res['response']) {
+                  case true:
+                    removeCreateUser();
+                    submitForm.reset();
+                    userBox.className = gray;
+                    passBox.className = gray;
+                    snackbar('Cont creat cu succes!', 0);
+                    break;
+                  case 'USER_EXISTS': snackbar('Numele de utilizator există deja!', 2); break;
+                  case 'EMAIL_EXISTS': snackbar('Adresa e-mail există deja!', 2); break;
+                  case 'USER_PASSWORD_EMAIL_NOT_VALID': snackbar('Datele introduse nu sunt valide', 2); break;
+                }
+              })
+              .catch((err) => {
+                switch (err.message) {
+                  case '429': snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 1); break;
+                  case '502': snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2); break;
+                  default: snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
+                }
+              });
           } else {
             if (emailRegexp.test(emailBox.value)) {
               snackbar('Adresa e-mail există deja!', 2);
@@ -226,18 +260,30 @@ submitForm.addEventListener('submit', function(e) {
           }
         }
       } else {
-        xhr('POST', '/loginUser', {'username': userBox.value, 'password': passBox.value}, function(r) {
-          switch (r) {
-            case 'USER_DISABLED': snackbar('Contul este dezactivat! Verifică adresa de e-mail înregistrată pentru activarea contului.', 3); break;
-            case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
-            case 'RATE_LIMIT': snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 2); break;
-            default:
-              document.body.innerHTML = r;
-              setTimeout(function() {
-                window.location.href = '/';
-              }, 3000);
-          }
-        });
+        fetcH('POST', '/loginUser', {
+          'username': userBox.value,
+          'password': passBox.value,
+        })
+          .then((res) => {
+            switch (res['response']) {
+              case true:
+                document.body.innerHTML = res['msg'] as string;
+                setTimeout(function() {
+                  window.location.href = '/';
+                }, 3000);
+                break;
+              case 'USER_DISABLED': snackbar('Contul este dezactivat! Verifică adresa de e-mail înregistrată pentru activarea contului.', 3); break;
+              case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
+              case 'USER_PASSWORD_NOT_VALID': snackbar('Datele introduse nu sunt valide!', 2); break;
+            }
+          })
+          .catch((err) => {
+            switch(err.message) {
+              case '429': snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 1); break;
+              case '502': snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2); break;
+              default: snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
+            }
+          });
       }
     } else {
       const chk = passCheck(passBox.value);
@@ -324,5 +370,5 @@ function removeCreateUser(): void {
   lText.textContent = 'Login';
   createAcc.textContent = 'Nu ai cont? Creează unul!';
 
-  userBox.blur();
+  userBoxBlur();
 }

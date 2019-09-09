@@ -68,7 +68,7 @@ const rateLimiter = (req: express.Request, res: express.Response, next: express.
   rateLimiterRedis.consume(req.ip).then(() => {
     next();
   }).catch(() => {
-    res.status(429).send('RATE_LIMIT');
+    res.status(429).json({response: 'RATE_LIMIT'});
   });
 };
 
@@ -85,7 +85,7 @@ app.get('*', function(req, res, next) {
       next();
     } else {
       console.log(error);
-      res.send(500).render('INTERNAL_ERROR');
+      res.status(500).render('500');
     }
   });
 });
@@ -143,7 +143,7 @@ app.get('/login', function(req, res) {
 
 app.get('/logOut', function(req, res) {
   if (req.session) {
-    req.session.destroy((error) => console.log(error));
+    req.session.destroy((error) => {if (error) console.log(error);});
     res.clearCookie('__Host-sessionID', {
       path: '/',
       httpOnly: true,
@@ -166,24 +166,26 @@ app.post('/loginUser', rateLimiter, function(req, res) {
                 if (req.session) {
                   req.session.username = res.locals.userName;
                 }
-                res.render('loginS', {layout: false});
+                res.render('loginS', {layout: false}, (err, html) => {
+                  res.json({response: true, msg: html});
+                });
               } else {
-                res.status(500).send('INTERNAL_ERROR');
+                res.status(500).json({response: 'INTERNAL_ERROR'});
               }
             })
             .catch((r) => {
               console.log(r);
-              res.status(500).send('INTERNAL_ERROR');
+              res.status(500).json({response: 'INTERNAL_ERROR'});
             });
         } else {
-          res.send(f);
+          res.json({response: f});
         }})
       .catch((r) => {
         console.log(r);
-        res.status(500).send('INTERNAL_ERROR');
+        res.status(500).json({response: 'INTERNAL_ERROR'});
       });
   } else {
-    res.status(400).send('Cererea nu este corectă! Ieși acas\'!');
+    res.status(400).json({response: 'Cererea nu este corectă! Ieși acas\'!'});
   }
 });
 
@@ -192,17 +194,17 @@ app.post('/createUser', rateLimiter, function(req, res) {
     if (req.body.policy == true) {
       auth.createUser(req.body.username, req.body.password, req.body.email)
         .then((f) => {
-          res.send(f);
+          res.json({response: f});
         })
         .catch((r) => {
           console.log(r);
-          res.status(500).send('INTERNAL_ERROR');
+          res.status(500).json({response: 'INTERNAL_ERROR'});
         });
     } else {
-      res.send('POLICY_NOT_ACCEPTED');
+      res.status(400).json({response: 'Cererea nu este corectă! Ieși acas\'!'});
     }
   } else {
-    res.status(400).send('Cererea nu este corectă! Ieși acas\'!');
+    res.status(400).json({response: 'Cererea nu este corectă! Ieși acas\'!'});
   }
 });
 
@@ -210,14 +212,14 @@ app.post('/usernameExists', function(req, res) {
   if (req.body.username) {
     auth.usernameExists(req.body.username)
       .then((f) => {
-        res.send(f);
+        res.json({response: f});
       })
       .catch((r) => {
         console.log(r);
-        res.send(500).send('INTERNAL_ERROR');
+        res.status(500).json({response: 'INTERNAL_ERROR'});
       });
   } else {
-    res.status(400).send('Cererea nu este corectă! Ieși acas\'!');
+    res.status(400).json({response: 'Cererea nu este corectă! Ieși acas\'!'});
   }
 });
 
@@ -225,14 +227,14 @@ app.post('/emailExists', function(req, res) {
   if (req.body.email) {
     auth.emailExists(req.body.email)
       .then((f) => {
-        res.send(f);
+        res.json({response: f});
       })
       .catch((r) => {
         console.log(r);
-        res.send(500).send('INTERNAL_ERROR');
+        res.status(500).json({response: 'INTERNAL_ERROR'});
       });
   } else {
-    res.status(400).send('Cererea nu este corectă! Ieși acas\'!');
+    res.status(400).json({response: 'Cererea nu este corectă! Ieși acas\'!'});
   }
 });
 

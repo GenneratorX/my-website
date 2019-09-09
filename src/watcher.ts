@@ -174,6 +174,7 @@ function jsMin(): void {
     'js': 'example/*.js',
     'compilation_level': 'ADVANCED',
     'language_in': 'ECMASCRIPT_2019',
+    'language_out': 'ECMASCRIPT_2017',
     'assume_function_wrapper': true,
     'use_types_for_optimization': true,
     'charset': 'UTF-8',

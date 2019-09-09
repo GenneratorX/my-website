@@ -51,20 +51,26 @@ function setAttributes(elem: HTMLElement, attr: { [s: string]: string }): void {
 }
 
 /**
- * Sends an XMLHttpRequest to the server
+ * Sends a fetch request to the server
  * @param method HTTP method to use (eg. GET/POST)
  * @param url URL to send the request to
  * @param req Data to send
- * @param cb Callback
  */
-function xhr(method: 'GET'|'POST' , url: string, req: { [key: string]: string|number|boolean }, cb: (res: string) => void): void {
-  const xhr = new XMLHttpRequest();
-  xhr.open(method, url, true);
-  xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-  xhr.send(JSON.stringify(req));
-  xhr.onload = function(): void {
-    cb(xhr.response);
-  };
+function fetcH(method: 'GET'|'POST', url: string, req: { [key: string]: string|number|boolean }): Promise<{ [key: string]: string|number|boolean }> {
+  return fetch(url, {
+    method: method,
+    mode: 'same-origin',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8'
+    },
+    body: JSON.stringify(req),
+  }).then((res) => {
+    if (res.ok) {
+      return res.json();
+    }
+    throw new Error(res.status.toString());
+  });
 }
 
 /**

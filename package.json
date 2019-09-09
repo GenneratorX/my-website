@@ -2,7 +2,7 @@
   "name": "web",
   "version": "1.0.0",
   "description": "My NodeJS Website",
-  "main": "app.js",
+  "main": "app/app.js",
   "scripts": {
     "test": "echo \"No test yet\" && exit 0"
   },
@@ -23,6 +23,7 @@
     "argon2",
     "postgresql",
     "redis",
+	"typescript",
     "javascript",
     "html5",
     "css3"
