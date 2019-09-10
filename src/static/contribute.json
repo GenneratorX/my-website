@@ -7,17 +7,5 @@
     "type": "git",
     "clone": "https://github.com/GenneratorX/my-website.git"
   },
-  "keywords": [
-    "nodejs",
-    "website",
-    "express",
-    "handlebars",
-    "argon2",
-    "postgresql",
-    "redis",
-    "typescript",
-    "javascript",
-    "html5",
-    "css3"
-  ]
+  "keywords": ["nodejs", "website", "express", "handlebars", "argon2", "postgresql", "redis", "typescript", "javascript", "html5", "css3"]
 }

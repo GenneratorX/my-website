@@ -1,14 +1,14 @@
 /** @preserve login.js */
 'use strict';
 
-const submitForm = (document.getElementById('auth') as HTMLFormElement);
+const submitForm = document.getElementById('auth') as HTMLFormElement;
 
-const userBox = (document.getElementById('username') as HTMLInputElement);
-const passBox = (document.getElementById('password') as HTMLInputElement);
+const userBox = document.getElementById('username') as HTMLInputElement;
+const passBox = document.getElementById('password') as HTMLInputElement;
 
-const createAcc = (document.getElementById('createAcc') as HTMLAnchorElement);
-const forgotPass = (document.getElementById('forgotPass') as HTMLAnchorElement);
-const lText = (document.getElementById('lText') as HTMLParagraphElement);
+const createAcc = document.getElementById('createAcc') as HTMLAnchorElement;
+const forgotPass = document.getElementById('forgotPass') as HTMLAnchorElement;
+const lText = document.getElementById('lText') as HTMLParagraphElement;
 
 let repeatBox: HTMLInputElement;
 let emailBox: HTMLInputElement;
@@ -70,22 +70,22 @@ createAcc.onclick = function(): void {
       'type': 'checkbox',
     });
 
-    const submitButton = (document.getElementById('submitB') as HTMLInputElement);
+    const submitButton = document.getElementById('submitB') as HTMLInputElement;
 
     submitForm.insertBefore(repeatPass, submitButton);
     submitForm.insertBefore(email, submitButton);
     submitForm.insertBefore(chkLabel, submitButton);
     chkLabel.insertAdjacentElement('afterbegin', chkBox);
 
-    setAttributes(passBox, {'autocomplete': 'new-password'});
-    setAttributes(submitForm, {'action': 'createUser'});
+    setAttributes(passBox, { 'autocomplete': 'new-password' });
+    setAttributes(submitForm, { 'action': 'createUser' });
 
     lText.textContent = 'Creare cont';
     createAcc.textContent = 'Ai cont? Loghează-te!';
 
-    repeatBox = (document.getElementById('repeatPassword') as HTMLInputElement);
-    emailBox = (document.getElementById('email') as HTMLInputElement);
-    checkLabel = (document.getElementById('chkLabel') as HTMLLabelElement);
+    repeatBox = document.getElementById('repeatPassword') as HTMLInputElement;
+    emailBox = document.getElementById('email') as HTMLInputElement;
+    checkLabel = document.getElementById('chkLabel') as HTMLLabelElement;
 
     repeatBox.onkeyup = repeatBoxKeyUp;
     emailBox.onkeyup = emailBoxKeyUp;
@@ -127,7 +127,7 @@ function userBoxKeyDown(e: KeyboardEvent): void {
 function userBoxBlur(): void {
   if (repeatBoxEnabled) {
     if (userBox.className == green) {
-      fetcH('POST', '/usernameExists', {'username': userBox.value})
+      fetcH('POST', '/usernameExists', { 'username': userBox.value })
         .then((res) => {
           if (res['response'] == true) {
             userBox.className = red;
@@ -191,7 +191,7 @@ function emailBoxKeyUp(): void {
 
 function emailBoxBlur(): void {
   if (emailBox.className == green) {
-    fetcH('POST', '/emailExists', {'email': emailBox.value})
+    fetcH('POST', '/emailExists', { 'email': emailBox.value })
       .then((res) => {
         if (res['response'] == true) {
           emailBox.className = red;
@@ -235,16 +235,27 @@ submitForm.addEventListener('submit', function(e) {
                     passBox.className = gray;
                     snackbar('Cont creat cu succes!', 0);
                     break;
-                  case 'USER_EXISTS': snackbar('Numele de utilizator există deja!', 2); break;
-                  case 'EMAIL_EXISTS': snackbar('Adresa e-mail există deja!', 2); break;
-                  case 'USER_PASSWORD_EMAIL_NOT_VALID': snackbar('Datele introduse nu sunt valide', 2); break;
+                  case 'USER_EXISTS':
+                    snackbar('Numele de utilizator există deja!', 2);
+                    break;
+                  case 'EMAIL_EXISTS':
+                    snackbar('Adresa e-mail există deja!', 2);
+                    break;
+                  case 'USER_PASSWORD_EMAIL_NOT_VALID':
+                    snackbar('Datele introduse nu sunt valide', 2);
+                    break;
                 }
               })
               .catch((err) => {
                 switch (err.message) {
-                  case '429': snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 1); break;
-                  case '502': snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2); break;
-                  default: snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
+                  case '429':
+                    snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 1);
+                    break;
+                  case '502':
+                    snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2);
+                    break;
+                  default:
+                    snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
                 }
               });
           } else {
@@ -272,22 +283,33 @@ submitForm.addEventListener('submit', function(e) {
                   window.location.href = '/';
                 }, 3000);
                 break;
-              case 'USER_DISABLED': snackbar('Contul este dezactivat! Verifică adresa de e-mail înregistrată pentru activarea contului.', 3); break;
-              case 'USER_PASSWORD_NOT_FOUND': snackbar('Numele de utilizator sau parola sunt incorecte!', 2); break;
-              case 'USER_PASSWORD_NOT_VALID': snackbar('Datele introduse nu sunt valide!', 2); break;
+              case 'USER_DISABLED':
+                snackbar('Contul este dezactivat! Verifică adresa de e-mail înregistrată pentru activarea contului.', 3);
+                break;
+              case 'USER_PASSWORD_NOT_FOUND':
+                snackbar('Numele de utilizator sau parola sunt incorecte!', 2);
+                break;
+              case 'USER_PASSWORD_NOT_VALID':
+                snackbar('Datele introduse nu sunt valide!', 2);
+                break;
             }
           })
           .catch((err) => {
-            switch(err.message) {
-              case '429': snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 1); break;
-              case '502': snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2); break;
-              default: snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
+            switch (err.message) {
+              case '429':
+                snackbar('Mai încet gogule! Ia o pauză și încearcă mai târziu!', 1);
+                break;
+              case '502':
+                snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2);
+                break;
+              default:
+                snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
             }
           });
       }
     } else {
       const chk = passCheck(passBox.value);
-      if (!chk) {
+      if (chk !== true) {
         if (!chk[0]) {
           snackbar('Parola trebuie să conțină minim 8 caractere!', 2);
         } else {
@@ -364,8 +386,8 @@ function removeCreateUser(): void {
 
   repeatBoxEnabled = false;
 
-  setAttributes(passBox, {'autocomplete': 'current-password'});
-  setAttributes(submitForm, {'action': 'loginUser'});
+  setAttributes(passBox, { 'autocomplete': 'current-password' });
+  setAttributes(submitForm, { 'action': 'loginUser' });
 
   lText.textContent = 'Login';
   createAcc.textContent = 'Nu ai cont? Creează unul!';

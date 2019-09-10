@@ -3,9 +3,7 @@
 'use strict';
 
 const link = document.createElement('link');
-link.rel = 'stylesheet',
-link.href = '/css/style.css',
-document.head.appendChild(link);
+(link.rel = 'stylesheet'), (link.href = '/css/style.css'), document.head.appendChild(link);
 
 if (document.readyState !== 'loading') {
   selectButton();
@@ -20,12 +18,12 @@ if (document.readyState !== 'loading') {
  */
 function selectButton(): void {
   const b = window.location.pathname.substring(1);
-  if (document.getElementById(b)) (document.getElementById(b) as HTMLAnchorElement).className+=' selected';
+  if (document.getElementById(b)) (document.getElementById(b) as HTMLAnchorElement).className += ' selected';
 }
 
-const hamburger = (document.getElementById('hamburger') as HTMLAnchorElement);
+const hamburger = document.getElementById('hamburger') as HTMLAnchorElement;
 if (hamburger) {
-  const ribbon = (document.getElementById('myRibbon') as HTMLElement);
+  const ribbon = document.getElementById('myRibbon') as HTMLElement;
   if (ribbon) {
     hamburger.onclick = function(): void {
       if (ribbon.className == 'ribbon') {
@@ -56,13 +54,13 @@ function setAttributes(elem: HTMLElement, attr: { [s: string]: string }): void {
  * @param url URL to send the request to
  * @param req Data to send
  */
-function fetcH(method: 'GET'|'POST', url: string, req: { [key: string]: string|number|boolean }): Promise<{ [key: string]: string|number|boolean }> {
+function fetcH(method: 'GET' | 'POST', url: string, req: { [key: string]: string | number | boolean }): Promise<{ [key: string]: string | number | boolean }> {
   return fetch(url, {
     method: method,
     mode: 'same-origin',
     credentials: 'same-origin',
     headers: {
-      'Content-Type': 'application/json; charset=utf-8'
+      'Content-Type': 'application/json; charset=utf-8',
     },
     body: JSON.stringify(req),
   }).then((res) => {
@@ -78,17 +76,25 @@ function fetcH(method: 'GET'|'POST', url: string, req: { [key: string]: string|n
  * @param msg Snackbar message
  * @param type Snackbar color [0 - green | 1 - orange | 2 - red | 3 - blue]
  */
-function snackbar(msg: string, type: 0 | 1 | 2 | 3 ): void {
+function snackbar(msg: string, type: 0 | 1 | 2 | 3): void {
   const snackB = document.createElement('div');
   snackB.setAttribute('id', 'snackbar');
   const snackC = document.createElement('div');
   snackC.setAttribute('id', 'snackC');
   snackC.textContent = msg;
   switch (type) {
-    case 0: snackC.className = 'green'; break;
-    case 1: snackC.className = 'orange'; break;
-    case 2: snackC.className = 'red'; break;
-    case 3: snackC.className = 'blue'; break;
+    case 0:
+      snackC.className = 'green';
+      break;
+    case 1:
+      snackC.className = 'orange';
+      break;
+    case 2:
+      snackC.className = 'red';
+      break;
+    case 3:
+      snackC.className = 'blue';
+      break;
   }
   snackB.appendChild(snackC);
   document.body.appendChild(snackB);

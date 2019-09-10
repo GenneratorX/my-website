@@ -32,8 +32,8 @@ const transporter = nodemailer.createTransport({
  */
 export async function createUser(usr: string, pass: string, email: string, uType = 1, uActive = 0): Promise<boolean | string> {
   if (userRegexp.test(usr) && passwordCheck(pass) && emailRegexp.test(email)) {
-    if (! await usernameExists(usr)) {
-      if (! await emailExists(email)) {
+    if (!(await usernameExists(usr))) {
+      if (!(await emailExists(email))) {
         const hash = argon2.hash(pass, {
           type: argon2.argon2d,
           hashLength: 128,
@@ -76,7 +76,7 @@ export async function createUser(usr: string, pass: string, email: string, uType
  * @param pass Password
  * @return True if the login was successful, error string otherwise
  */
-export async function loginUser(usr: string, pass: string): Promise<boolean|string> {
+export async function loginUser(usr: string, pass: string): Promise<boolean | string> {
   if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100) {
     const u = await db.query('SELECT password, active FROM users WHERE LOWER(username) = LOWER($1);', [usr]);
     if (u && u[0]) {

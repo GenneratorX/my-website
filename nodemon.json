@@ -1,9 +1,5 @@
 {
-  "ignore": [
-    "app/static/"
-  ],
-  "watch": [
-    "app"
-  ],
+  "ignore": ["app/static/"],
+  "watch": ["app"],
   "ext": "js, handlebars"
 }

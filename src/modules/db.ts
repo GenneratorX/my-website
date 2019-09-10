@@ -1,7 +1,7 @@
 'use strict';
 
 import pg = require('pg');
-const pool = new pg.Pool({host: '/var/run/postgresql', max: 50});
+const pool = new pg.Pool({ host: '/var/run/postgresql', max: 50 });
 
 /**
  * Querries the database
@@ -9,8 +9,9 @@ const pool = new pg.Pool({host: '/var/run/postgresql', max: 50});
  * @param param Query parameters
  * @return Query result
  */
-export async function query(qry: string, param?: any[]): Promise<any[][]|null> { // eslint-disable-line @typescript-eslint/no-explicit-any
-  let conn: pg.PoolClient|undefined;
+//eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function query(qry: string, param?: any[]): Promise<any[][] | null> {
+  let conn: pg.PoolClient | undefined;
   try {
     conn = await pool.connect();
     const res = await conn.query({

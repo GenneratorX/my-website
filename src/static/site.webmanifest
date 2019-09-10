@@ -8,14 +8,7 @@
   "display": "standalone",
   "lang": "ro-RO",
   "dir": "ltr",
-  "categories": [
-    "entertainment",
-    "games",
-    "music",
-    "security",
-    "social",
-    "utilities"
-  ],
+  "categories": ["entertainment", "games", "music", "security", "social", "utilities"],
   "description": "Site realizat de mine pentru a satisface nevoile mele. Copyright Gennerator",
   "icons": [
     {

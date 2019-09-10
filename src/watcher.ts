@@ -1,13 +1,13 @@
 'use strict';
 
 import chokidar = require('chokidar');
-import {promises as fs} from 'fs';
+import { promises as fs } from 'fs';
 
 import typescript = require('typescript');
 import crass = require('crass');
-import {compiler} from 'google-closure-compiler';
-import {minify} from 'html-minifier';
-import {compress} from 'iltorb';
+import { compiler } from 'google-closure-compiler';
+import { minify } from 'html-minifier';
+import { compress } from 'iltorb';
 
 const pathSrcJs = 'src/static/js/';
 
@@ -43,12 +43,10 @@ watcher
           }
           break;
         default:
-          fs.unlink(path.replace('src/', 'app/'))
-            .catch((error) => log(error));
-          if (/.*\.(css|js|html|svg|xml|webmanifest)/.test(extension)) {
+          fs.unlink(path.replace('src/', 'app/')).catch((error) => log(error));
+          if (/.*\.(css|js|html|svg|xml|webmanifest|json)/.test(extension)) {
             log(`[CLEANUP] ${path}`);
-            fs.unlink(`${path.replace('src/', 'app/')}.br`)
-              .catch((error) => log(error));
+            fs.unlink(`${path.replace('src/', 'app/')}.br`).catch((error) => log(error));
           }
       }
     }
@@ -78,7 +76,7 @@ function onchange(path: string): void {
                 .then((buffers) => {
                   const writeAll: Promise<void>[] = [];
                   for (let i = 0; i < buffers.length; i++) {
-                    writeAll.push(fs.writeFile(`example/${files[i].slice(0,-2)}js`, tsJS(buffers[i].toString())));
+                    writeAll.push(fs.writeFile(`example/${files[i].slice(0, -2)}js`, tsJS(buffers[i].toString())));
                   }
                   Promise.all(writeAll)
                     .then(() => {
@@ -92,8 +90,7 @@ function onchange(path: string): void {
         } else {
           fs.readFile(path)
             .then((buffer) => {
-              fs.writeFile(`${writepath.slice(0,-2)}js`, tsJS(buffer.toString()))
-                .catch((error) => log(error));
+              fs.writeFile(`${writepath.slice(0, -2)}js`, tsJS(buffer.toString())).catch((error) => log(error));
             })
             .catch((error) => log(error));
         }
@@ -102,8 +99,7 @@ function onchange(path: string): void {
         log(`[CSSmin] ${path}`);
         cssMin(path)
           .then((min) => {
-            fs.writeFile(writepath, min)
-              .catch((error) => log(error));
+            fs.writeFile(writepath, min).catch((error) => log(error));
           })
           .catch((error) => log(error));
         break;
@@ -111,8 +107,7 @@ function onchange(path: string): void {
         log(`[JSONmin] ${path}`);
         fs.readFile(path)
           .then((buffer) => {
-            fs.writeFile(writepath, JSON.stringify(JSON.parse(buffer.toString())))
-              .catch((error) => log(error));
+            fs.writeFile(writepath, JSON.stringify(JSON.parse(buffer.toString()))).catch((error) => log(error));
           })
           .catch((error) => log(error));
         break;
@@ -122,19 +117,17 @@ function onchange(path: string): void {
         log(`[HTMLmin] ${path}`);
         htmlMin(path)
           .then((min) => {
-            fs.writeFile(writepath, min)
-              .catch((error) => log(error));
+            fs.writeFile(writepath, min).catch((error) => log(error));
           })
           .catch((error) => log(error));
         break;
       default:
         log(`[COPY] ${path}`);
-        fs.copyFile(path, writepath)
-          .catch((error) => log(error));
+        fs.copyFile(path, writepath).catch((error) => log(error));
     }
   } else {
     if (path.startsWith('app/static/')) {
-      if (/.*\.(css|js|html|svg|xml|webmanifest)$/.test(extension)) {
+      if (/.*\.(css|js|html|svg|xml|webmanifest|json)$/.test(extension)) {
         log(`[Brotli] ${path}`);
         brotlify(path);
       }
@@ -154,14 +147,15 @@ function brotlify(f: string): void {
         'quality': 11,
         'lgwin': 24,
         'lgblock': 0,
-      }).then((compressed: Buffer) => {
-        if (compressed.byteLength < buffer.byteLength) {
-          fs.writeFile(`${f}.br`, compressed)
-            .catch((error) => log(error));
-        } else {
-          log('Compressed > Original file');
-        }
-      }).catch((error) => log(error));
+      })
+        .then((compressed: Buffer) => {
+          if (compressed.byteLength < buffer.byteLength) {
+            fs.writeFile(`${f}.br`, compressed).catch((error) => log(error));
+          } else {
+            log('Compressed > Original file');
+          }
+        })
+        .catch((error) => log(error));
     })
     .catch((error) => log(error));
 }
@@ -184,8 +178,8 @@ function jsMin(): void {
       const f = stdOut.split(/\/\*\n\s(.*).\*\/\n/);
       if (f.length > 0) {
         const writeAll: Promise<void>[] = [];
-        for (let i=1; i<f.length; i+=2) {
-          writeAll.push(fs.writeFile(`app/static/js/${f[i]}`, f[i+1].replace(/\n/g, '')));
+        for (let i = 1; i < f.length; i += 2) {
+          writeAll.push(fs.writeFile(`app/static/js/${f[i]}`, f[i + 1].replace(/\n/g, '')));
         }
         Promise.all(writeAll)
           .then(() => {
@@ -193,8 +187,7 @@ function jsMin(): void {
               .then((files) => {
                 for (let i = 0; i < files.length; i++) {
                   if (files[i].endsWith('.js')) {
-                    fs.unlink(`example/${files[i]}`)
-                      .catch((error) => log(error));
+                    fs.unlink(`example/${files[i]}`).catch((error) => log(error));
                   }
                 }
               })
@@ -225,7 +218,8 @@ function tsJS(f: string): string {
       'removeComments': false,
       'preserveConstEnums': true,
       'sourceMap': false,
-    },}).outputText;
+    },
+  }).outputText;
 }
 
 /**
@@ -235,7 +229,10 @@ function tsJS(f: string): string {
  */
 async function cssMin(f: string): Promise<string> {
   const file = await fs.readFile(f);
-  return crass.parse(file.toString()).optimize({o1: true}).toString();
+  return crass
+    .parse(file.toString())
+    .optimize({ o1: true })
+    .toString();
 }
 
 /**

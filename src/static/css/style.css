@@ -129,7 +129,7 @@ input.submitB {
   width: 2em;
 }
 
-input:hover[type="submit"] {
+input:hover[type='submit'] {
   background: #09776c;
 }
 
