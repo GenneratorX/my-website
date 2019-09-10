@@ -105,23 +105,36 @@ app.use(function(req, res, next) {
     res.locals.userName = req.session.username;
     res.locals.greetingMessage = util.greetingMessage();
   }
+  res.locals.pageURL = req.originalUrl;
   next();
 });
 
 app.get('/', function(req, res) {
-  res.render('index');
+  res.render('index', {
+    pageTitle: 'Acasă',
+    pageDescription: 'Site realizat de mine pentru a satisface nevoile mele. Copyright Gennerator',
+  });
 });
 
 app.get('/filme', function(req, res) {
-  res.render('filme');
+  res.render('filme', {
+    pageTitle: 'Filme',
+    pageDescription: 'Evidență filme vizualizate, statistici și informații detaliate despre fiecare film.',
+  });
 });
 
 app.get('/muzica', function(req, res) {
-  res.render('muzica');
+  res.render('muzica', {
+    pageTitle: 'Muzică',
+    pageDescription: 'Player audio pentru melodiile personale, playlist-uri și organizare melodii.',
+  });
 });
 
 app.get('/partajare', function(req, res) {
-  res.render('partajare');
+  res.render('partajare', {
+    pageTitle: 'Partajare',
+    pageDescription: 'Partajare privată de fișiere, încărcare și organizare fișiere personale.',
+  });
 });
 
 app.get('/activate', function(req, res) {
@@ -146,7 +159,10 @@ app.get('/activate', function(req, res) {
 
 app.get('/login', function(req, res) {
   if (!res.locals.userName) {
-    res.render('login');
+    res.render('login', {
+      pageTitle: 'Login',
+      pageDescription: 'Autentificare utilizator, creare cont utilizator și recuperare credențiale.',
+    });
   } else {
     res.redirect('/');
   }
