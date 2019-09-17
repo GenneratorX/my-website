@@ -8,7 +8,7 @@ const passBox = document.getElementById('password') as HTMLInputElement;
 
 const createAcc = document.getElementById('createAcc') as HTMLAnchorElement;
 const forgotPass = document.getElementById('forgotPass') as HTMLAnchorElement;
-const lText = document.getElementById('lText') as HTMLParagraphElement;
+const lText = document.getElementById('lText') as HTMLHeadingElement;
 
 let repeatBox: HTMLInputElement;
 let emailBox: HTMLInputElement;
@@ -20,7 +20,9 @@ const red = 'login lRed';
 const gray = 'login';
 
 const userRegexp = /^[a-zA-Z\d][a-zA-Z\d!?$^&*._-]{5,39}$/;
-const emailRegexp = /^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+(\.[-!#$%&'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$/;
+const emailRegexp = new RegExp(
+  '^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&\'*+/0-9=?A-Z^_`a-z{|}~]+(\\.[-!#$%&\'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]' +
+  '([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$');
 
 forgotPass.onclick = function(): void {
   snackbar('Asta e! 🤷‍♂️', 0);
@@ -284,7 +286,7 @@ submitForm.addEventListener('submit', function(e) {
                 }, 3000);
                 break;
               case 'USER_DISABLED':
-                snackbar('Contul este dezactivat! Verifică adresa de e-mail înregistrată pentru activarea contului.', 3);
+                snackbar('Contul este dezactivat! Verifică adresa de e-mail înregistrată pentru activarea contului', 3);
                 break;
               case 'USER_PASSWORD_NOT_FOUND':
                 snackbar('Numele de utilizator sau parola sunt incorecte!', 2);
@@ -328,7 +330,9 @@ submitForm.addEventListener('submit', function(e) {
         snackbar('Numele de utilizator există deja!', 2);
       }
     } else {
-      snackbar('Numele de utilizator trebuie să conțină minim 6 caractere și să înceapă cu un caracter alfanumeric. Simbolurile acceptate sunt: !?$^&*._-', 2);
+      snackbar(
+        'Numele de utilizator trebuie să conțină minim 6 caractere și să înceapă cu un caracter alfanumeric. ' +
+        'Simbolurile acceptate sunt: !?$^&*._-', 2);
     }
   }
   e.preventDefault();

@@ -4,7 +4,12 @@
     "es6": true,
     "node": true
   },
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/eslint-recommended", "plugin:@typescript-eslint/recommended", "plugin:@typescript-eslint/recommended-requiring-type-checking"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+  ],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
@@ -15,13 +20,38 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": ["import", "node", "promise", "@typescript-eslint/eslint-plugin"],
+  "plugins": [
+    "import",
+    "node",
+    "promise",
+    "@typescript-eslint/eslint-plugin"
+  ],
   "rules": {
     "semi": 0,
-    "max-len": 0,
+    "max-len": [
+      "error",
+      {
+        "code": 120
+      }
+    ],
+    "space-before-function-paren": [
+      "error",
+      "never"
+    ],
     "@typescript-eslint/no-use-before-define": 0,
-    "@typescript-eslint/semi": ["error"],
-    "@typescript-eslint/indent": ["error", 2],
-    "@typescript-eslint/quotes": ["error", "single", { "allowTemplateLiterals": true }]
+    "@typescript-eslint/semi": [
+      "error"
+    ],
+    "@typescript-eslint/indent": [
+      "error",
+      2
+    ],
+    "@typescript-eslint/quotes": [
+      "error",
+      "single",
+      {
+        "allowTemplateLiterals": true
+      }
+    ]
   }
 }

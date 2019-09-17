@@ -12,6 +12,7 @@ import { compress } from 'iltorb';
 const pathSrcJs = 'src/static/js/';
 
 const watcher = chokidar.watch(['./src', './app'], {
+  ignored: /.*\.br$/,
   persistent: true,
   depth: 2,
   awaitWriteFinish: {
@@ -174,7 +175,9 @@ function jsMin(): void {
     'charset': 'UTF-8',
   }).run((exitCode: number, stdOut: string, stdErr: string) => {
     if (exitCode == 0) {
-      if (stdErr) log(`================================================\n${stdErr}================================================\n`);
+      if (stdErr) {
+        log(`=============================================\n${stdErr}=============================================\n`);
+      }
       const f = stdOut.split(/\/\*\n\s(.*).\*\/\n/);
       if (f.length > 0) {
         const writeAll: Promise<void>[] = [];

@@ -54,7 +54,9 @@ function setAttributes(elem: HTMLElement, attr: { [s: string]: string }): void {
  * @param url URL to send the request to
  * @param req Data to send
  */
-function fetcH(method: 'GET' | 'POST', url: string, req: { [key: string]: string | number | boolean }): Promise<{ [key: string]: string | number | boolean }> {
+function fetcH(
+  method: 'GET' | 'POST', url: string, req: { [key: string]: string | number | boolean }):
+  Promise<{ [key: string]: string | number | boolean }> {
   return fetch(url, {
     method: method,
     mode: 'same-origin',

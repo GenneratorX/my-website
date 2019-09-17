@@ -10,7 +10,7 @@ const pool = new pg.Pool({ host: '/var/run/postgresql', max: 50 });
  * @return Query result
  */
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function query(qry: string, param?: any[]): Promise<any[][] | null> {
+export async function query(qry: string, param?: any[]): Promise<any[][]> {
   let conn: pg.PoolClient | undefined;
   try {
     conn = await pool.connect();
@@ -22,7 +22,7 @@ export async function query(qry: string, param?: any[]): Promise<any[][] | null>
     return res.rows;
   } catch (err) {
     console.log(err);
-    return null;
+    throw err;
   } finally {
     if (conn) conn.release();
   }

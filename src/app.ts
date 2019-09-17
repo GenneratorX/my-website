@@ -16,13 +16,10 @@ import * as db from './modules/db';
 import * as util from './modules/util';
 
 const app = express();
-app.engine(
-  'handlebars',
-  exhb({
-    layoutsDir: 'app/views/layouts',
-    partialsDir: 'app/views/partials',
-  })
-);
+app.engine('handlebars', exhb({
+  layoutsDir: 'app/views/layouts',
+  partialsDir: 'app/views/partials',
+}));
 
 app.set('view engine', 'handlebars');
 app.set('views', 'app/views');
@@ -86,12 +83,17 @@ app.get('*', function(req, res, next) {
   crypto.randomBytes(16, (error, buffer) => {
     if (!error) {
       res.locals.nonce = buffer.toString('base64');
-      res.header('Content-Security-Policy', `default-src 'none'; script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}'; img-src 'self'; connect-src 'self'; style-src 'self' 'nonce-${res.locals.nonce}'; font-src 'self'; object-src 'none'; media-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; manifest-src 'self'; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; report-to default`);
-      res.header('Feature-Policy', `accelerometer 'none'; ambient-light-sensor 'none'; autoplay 'none'; camera 'none'; encrypted-media 'none'; fullscreen 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; midi 'none'; payment 'none'; speaker 'self'; sync-xhr 'none'; usb 'none'; vr 'none'`);
-      res.header('Expect-CT', `max-age=1209600, enforce, report-uri=https://gennerator.report-uri.com/r/d/ct/enforce`);
-      res.header('Report-To', `{"group":"default","max_age":31536000,"endpoints":[{"url":"https://gennerator.report-uri.com/a/d/g"}],"include_subdomains":true}`);
-      res.header('Strict-Transport-Security', `max-age=31536000; includeSubDomains; preload`);
-      res.header('Referrer-Policy', `strict-origin-when-cross-origin`);
+      res.header('Content-Security-Policy',
+        `default-src 'none'; script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}'; img-src 'self'; ` +
+        `connect-src 'self'; style-src 'self' 'nonce-${res.locals.nonce}'; font-src 'self'; object-src 'none'; ` +
+        `media-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; manifest-src 'self'; ` +
+        `report-uri https://gennerator.report-uri.com/r/d/csp/enforce; report-to default`
+      );
+      res.header('Feature-Policy',
+        `accelerometer 'none'; ambient-light-sensor 'none'; autoplay 'none'; camera 'none'; encrypted-media 'none'; ` +
+        `fullscreen 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; ` +
+        `midi 'none'; payment 'none'; speaker 'self'; sync-xhr 'none'; usb 'none'; vr 'none'`
+      );
       next();
     } else {
       console.log(error);
@@ -112,7 +114,7 @@ app.use(function(req, res, next) {
 app.get('/', function(req, res) {
   res.render('index', {
     pageTitle: 'Acasă',
-    pageDescription: 'Site realizat de mine pentru a satisface nevoile mele. Copyright Gennerator',
+    pageDescription: 'Site realizat de mine pentru a satisface nevoile mele. Copyright Gennerator.',
   });
 });
 
@@ -277,7 +279,10 @@ app.post('/emailExists', function(req, res) {
 });
 
 app.use(function(req, res) {
-  res.status(404).render('404');
+  res.status(404).render('404', {
+    pageTitle: 'Nimic aici',
+    pageDescription: 'Resursa accesată nu există'
+  });
 });
 
 app.listen(env.PORT, () => console.log(`Aplicatia ruleaza pe portul ${env.PORT}!`));

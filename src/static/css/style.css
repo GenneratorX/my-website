@@ -33,6 +33,15 @@ body {
   padding: 0;
 }
 
+input {
+  color: #fff;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 200;
+}
+
 .content {
   align-items: center;
   color: #fff;
@@ -85,7 +94,6 @@ a.right:hover {
 }
 
 a.login {
-  color: #fff;
   font-size: 1.3rem;
   margin: auto 0.5rem auto auto;
   text-decoration: none;
@@ -95,7 +103,6 @@ input.login {
   background: #232323;
   border: 2px #363636 solid;
   border-radius: 15px;
-  color: #fff;
   display: block;
   font-family: 'Raleway', Arial, sans-serif;
   font-size: 1rem;
@@ -119,7 +126,6 @@ input.submitB {
   background: #363636;
   border: 0;
   border-radius: 50%;
-  color: #fff;
   font-size: 2rem;
   font-weight: 700;
   height: 2em;
