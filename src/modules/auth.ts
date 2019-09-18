@@ -4,6 +4,7 @@ import argon2 = require('argon2');
 import crypto = require('crypto');
 import querystring = require('querystring');
 import nodemailer = require('nodemailer');
+import hbs = require('nodemailer-express-handlebars');
 
 import * as env from '../env';
 import * as db from './db';
@@ -22,6 +23,14 @@ const transporter = nodemailer.createTransport({
     pass: env.EMAIL_PASSWORD,
   },
 });
+
+transporter.use('compile', hbs({
+  viewEngine: {
+    layoutsDir: 'app/views/emails/',
+    partialsDir: 'app/views/emails/',
+  },
+  viewPath: 'app/views/emails',
+}));
 
 /**
  * Adds user to database
@@ -59,52 +68,15 @@ export async function createUser(
             );
             transporter.sendMail({
               from: `"Gennerator" <${env.EMAIL_USERNAME}>`,
-              to: `"${usr}" <${email.toLowerCase()}>`,
+              to: `<${email.toLowerCase()}>`,
               replyTo: `"Contact" <${env.EMAIL_REPLYTO}>`,
               subject: 'Confirmă contul creat',
-              html:
-                `<!DOCTYPE html><html lang="ro" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-c` +
-                `om:office:office" xmlns:v="urn:schemas-microsoft-com:vml"><head><title>Bine ai venit!</title><!--[if` +
-                ` !mso]><!-- --><meta content="IE=edge" http-equiv="X-UA-Compatible"><!--<![endif]--><meta content="t` +
-                `ext/html; charset=UTF-8" http-equiv="Content-Type"><meta content="width=device-width,initial-scale=1` +
-                `" name="viewport"><style>#outlook a{padding:0}.ExternalClass,.ReadMsgBody{width:100%}.ExternalClass ` +
-                `*{line-height:100%}body{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%;margin:0;padding:0}t` +
-                `able,td{border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0}img{-ms-interpolation-mode:bi` +
-                `cubic;border:0;height:auto;line-height:100%;outline:0;text-decoration:none}p{display:block;margin:13` +
-                `px 0}</style><!--[if !mso]><!--><style>@media only screen and (max-width:480px){@-ms-viewport{width:` +
-                `320px}@viewport{width:320px}}</style><!--<![endif]--><!--[if mso]><xml><o:officedocumentsettings><o:` +
-                `allowpng><o:pixelsperinch>96</o:pixelsperinch></o:officedocumentsettings></xml><![endif]--><!--[if l` +
-                `te mso 11]><style>.outlook-group-fix{width:100%!important}</style><![endif]--><style>@media only scr` +
-                `een and (min-width:6in){.mj-column-per-100{max-width:100%;width:100%!important}}</style></head><body` +
-                ` style="background-color:#232323"><div style="color:#fff;display:none;font-size:1px;line-height:1px;` +
-                `max-height:0;max-width:0;opacity:0;overflow:hidden">Activează contul creat</div><div style="backgrou` +
-                `nd-color:#232323"><!--[if mso | IE]><table border="0" cellpadding="0" cellspacing="0" align="center"` +
-                ` style="width:600px" width="600"><tr><td style="font-size:0;line-height:0;mso-line-height-rule:exact` +
-                `ly"><![endif]--><div style="background:#363636;background-color:#363636;margin:0 auto;max-width:600p` +
-                `x"><table border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#363636;b` +
-                `ackground-color:#363636;width:100%" align="center"><tbody><tr><td style="direction:ltr;font-size:0;p` +
-                `adding:20px 0;text-align:center;vertical-align:top"><!--[if mso | IE]><table border="0" cellpadding=` +
-                `"0" cellspacing="0" role="presentation"><tr><td style="vertical-align:top;width:600px"><![endif]--><` +
-                `div style="direction:ltr;display:inline-block;font-size:13px;text-align:left;vertical-align:top;widt` +
-                `h:100%" class="mj-column-per-100 outlook-group-fix"><table border="0" cellpadding="0" cellspacing="0` +
-                `" role="presentation" style="vertical-align:top" width="100%"><tr><td style="font-size:0;padding:10p` +
-                `x 25px;word-break:break-word" align="left"><div style="color:#fff;font-family:Helvetica;font-size:23` +
-                `px;font-weight:200;line-height:1;text-align:left">${util.greetingMessage()}, <b>${usr}</b>!</div></t` +
-                `d></tr><tr><td style="font-size:0;padding:10px 25px;word-break:break-word"><p style="border-top:soli` +
-                `d 4px #232323;font-size:1;margin:0 auto;width:100%"></p><!--[if mso | IE]><table border="0" cellpadd` +
-                `ing="0" cellspacing="0" role="presentation" style="border-top:solid 4px #232323;font-size:1;margin:0` +
-                ` auto;width:550px" align="center" width="550px"><tr><td style="height:0;line-height:0"></td></tr></t` +
-                `able><![endif]--></td></tr><tr><td style="font-size:0;padding:10px 25px;word-break:break-word" align` +
-                `="left"><div style="color:#fff;font-family:Helvetica;font-size:23px;font-weight:200;line-height:1;te` +
-                `xt-align:left">Apasă butonul de mai jos pentru a activa contul!</div></td></tr><tr><td style="font-s` +
-                `ize:0;padding:10px 25px;word-break:break-word" align="center" vertical-align="middle"><table border=` +
-                `"0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:` +
-                `100%"><tr><td style="background:#232323;border:0;border-radius:3px;cursor:auto;padding:10px 25px" al` +
-                `ign="center" bgcolor="#232323" role="presentation" valign="middle"><a href="https://gennerator.com/a` +
-                `ctivate?act=${querystring.escape(actCode)}" style="background:#232323;color:#fff;font-family:Helveti` +
-                `ca;font-size:23px;font-weight:700;line-height:120%;margin:0;text-decoration:none;text-transform:none` +
-                `" target="_blank">ACTIVARE</a></td></tr></table></td></tr></table></div><!--[if mso | IE]><![endif]-` +
-                `-></td></tr></tbody></table></div><!--[if mso | IE]><![endif]--></div></body></html>`,
+              template: 'userActivation',
+              context: {
+                userName: usr,
+                greetingMessage: util.greetingMessage(),
+                activationCode: querystring.escape(actCode),
+              },
             });
           } else {
             console.log(e);

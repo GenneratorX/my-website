@@ -29,38 +29,34 @@ app.set('trust proxy', '127.0.0.1');
 
 const client = new Redis({ enableOfflineQueue: false });
 
-app.use(
-  bodyParser.json({
-    strict: true,
-    type: 'application/json',
-  })
-);
+app.use(bodyParser.json({
+  strict: true,
+  type: 'application/json',
+}));
 
-app.use(
-  session({
-    name: '__Host-sessionID',
-    secret: env.COOKIE_SECRET,
-    saveUninitialized: false,
-    resave: false,
-    cookie: {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: true,
-    },
-    store: new RedisStore({
-      client: client,
-      ttl: 43200, // 12 hours
-      disableTouch: true,
-    }),
-    genid: function(req) {
-      if (req.originalUrl == '/loginUser') {
-        return crypto.randomBytes(128).toString('base64');
-      }
-      return '';
-    },
-  })
-);
+app.use(session({
+  name: '__Host-sessionID',
+  secret: env.COOKIE_SECRET,
+  saveUninitialized: false,
+  resave: false,
+  cookie: {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+    sameSite: true,
+  },
+  store: new RedisStore({
+    client: client,
+    ttl: 43200, // 12 hours
+    disableTouch: true,
+  }),
+  genid: function(req) {
+    if (req.originalUrl == '/loginUser') {
+      return crypto.randomBytes(128).toString('base64');
+    }
+    return '';
+  },
+}));
 
 const rateLimiterRedis = new RateLimiterRedis({
   storeClient: client,
