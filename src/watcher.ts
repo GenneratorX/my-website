@@ -173,6 +173,7 @@ function jsMin(): void {
     'assume_function_wrapper': true,
     'use_types_for_optimization': true,
     'charset': 'UTF-8',
+    'externs': 'externs/YoutubeAPI.js',
   }).run((exitCode: number, stdOut: string, stdErr: string) => {
     if (exitCode == 0) {
       if (stdErr) {

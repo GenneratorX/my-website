@@ -23,14 +23,22 @@
   src: local('Raleway Bold'), local('Raleway-Bold'), url(/fonts/f2.woff2) format('woff2');
 }
 
-html,
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   display: flex;
   flex-direction: column;
   font-family: 'Raleway', Arial, sans-serif;
   height: 100vh;
-  margin: 0;
-  padding: 0;
+}
+
+img {
+  height: auto;
+  max-width: 100%;
 }
 
 input {
@@ -57,10 +65,47 @@ h1 {
 .ribbon {
   background-color: #363636;
   display: flex;
-  height: 3rem;
-  margin: 0;
   position: sticky;
   top: 0;
+}
+
+.right {
+  color: #fff;
+  font-size: 1.3rem;
+  margin: auto 0.5rem auto auto;
+}
+
+a.right {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* ============================== BUTTON ============================== */
+.button {
+  background: #363636;
+  color: #fff;
+  display: flex;
+  font-weight: 700;
+  height: auto;
+  padding: 1rem;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.5s ease-in-out;
+  width: auto;
+}
+
+.button:hover {
+  background: #232323;
+  transition: background 0.3s ease-in-out;
+}
+
+.selected {
+  background: #232323;
+}
+
+/* ============================== LOGIN ============================== */
+#lText {
+  margin-bottom: 1em;
 }
 
 div.auth {
@@ -75,17 +120,6 @@ a.auth {
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 700;
-}
-
-.right {
-  color: #fff;
-  font-size: 1.3rem;
-  margin: auto 0.5rem auto auto;
-}
-
-a.right {
-  font-weight: 700;
-  text-decoration: none;
 }
 
 a.auth:hover,
@@ -108,8 +142,8 @@ input.login {
   font-size: 1rem;
   font-weight: 700;
   margin-top: 1rem;
-  min-height: 2.5rem;
-  min-width: 15rem;
+  min-height: 3rem;
+  min-width: 17rem;
   outline: 0;
   padding: 0.1rem 0.5rem 0.1rem 1.5rem;
 }
@@ -139,19 +173,6 @@ input:hover[type='submit'] {
   background: #09776c;
 }
 
-.inline {
-  display: inline-block;
-  margin: 0;
-}
-
-.bold {
-  font-weight: 700;
-}
-
-.mb2 {
-  margin-bottom: 1rem;
-}
-
 .checkbox-label {
   cursor: pointer;
   font-size: 1.2rem;
@@ -160,27 +181,105 @@ input:hover[type='submit'] {
   user-select: none;
 }
 
-/* ============================== BUTTON ============================== */
-.button {
+/* ============================== SYNC VIDEO ============================== */
+.sync {
+  display: grid;
+  grid-template: repeat(8, minmax(0, 1fr)) / repeat(7, minmax(0, 1fr));
+  height: 100%;
+  margin: 0.5em;
+  overflow: auto;
+}
+
+.section-label {
   background: #363636;
   color: #fff;
-  display: flex;
+  font-size: 1.3rem;
   font-weight: 700;
-  height: auto;
-  padding: 1rem;
-  text-align: center;
-  text-decoration: none;
-  transition: background 0.5s ease-in-out;
-  width: auto;
+  padding: 0.3em 0 0.3em 0.5em;
 }
 
-.button:hover {
-  background: #232323;
-  transition: background 0.3s ease-in-out;
+.video-list {
+  border: 2px #363636 solid;
+  display: flex;
+  flex-direction: column;
+  grid-area: 1 / 1 / 9 / 2;
+  margin-right: 0.5em;
 }
 
-.selected {
-  background: #232323;
+.video-player {
+  background: #323232 url('/svg/youtube.svg') no-repeat center;
+  grid-area: 1 / 2 / 7 / 7;
+  margin-bottom: 0.5em;
+}
+
+.video-controls {
+  border: 2px #363636 solid;
+  grid-area: 7 / 2 / 9 / 5;
+  margin-right: 0.5em;
+}
+
+.chat-users {
+  border: 2px #363636 solid;
+  display: flex;
+  flex-direction: column;
+  grid-area: 7 / 5 / 9 / 7;
+}
+
+.chatUsers {
+  overflow: auto;
+  padding: 0.1rem 0.5rem 0.1rem 1rem;
+}
+
+.chat {
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  grid-area: 1 / 7 / 8 / 8;
+  margin-left: 0.5em;
+}
+
+.chat-box {
+  border: 2px #363636 solid;
+  height: 100%;
+  overflow: auto;
+  padding: 0.1rem 0.5rem 0.1rem 1rem;
+}
+
+.chat-messageBox {
+  grid-area: 8 / 7 / 9 / 8;
+  margin-left: 0.5em;
+  margin-top: 0.5em;
+}
+
+.messageBox {
+  background-color: #232323;
+  border: 2px #363636 solid;
+  border-radius: 15px;
+  color: #fff;
+  font-family: 'Raleway', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  height: 100%;
+  outline: 0;
+  padding: 0.1rem 0.5rem 0.1rem 1rem;
+  resize: none;
+  width: 100%;
+}
+
+.chat-box::-webkit-scrollbar,
+.chatUsers::-webkit-scrollbar,
+.messageBox::-webkit-scrollbar {
+  display: none;
+}
+
+.message {
+  padding: 0.3rem 0;
+  word-break: break-all;
+}
+
+.stretch {
+  height: 100%;
+  width: 100%;
 }
 
 /* ============================== RESPONSIVE TOPBAR ==================== */
@@ -190,9 +289,8 @@ input:hover[type='submit'] {
 }
 
 .ham {
-  box-sizing: border-box;
-  min-width: 3rem;
   padding: 0.8rem;
+  width: 3.188rem;
 }
 
 @media screen and (max-width: 576px) {
@@ -286,9 +384,53 @@ input:hover[type='submit'] {
 }
 
 /* ============================== MISC STUFF ============================== */
-img {
-  height: auto;
-  max-width: 100%;
+.inline {
+  display: inline-block;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+.red {
+  color: #d3312e;
+}
+
+.green {
+  color: #00ff7f;
+}
+
+.blue {
+  color: #1e90ff;
+}
+
+.orange {
+  color: #ed9c27;
+}
+
+.purple {
+  color: #8a2be2;
+}
+
+.yellow {
+  color: #ffc40d;
+}
+
+.brown {
+  color: #825a2c;
+}
+
+.pink {
+  color: #ff69b4;
+}
+
+.teal {
+  color: #00aba9;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 ::selection {

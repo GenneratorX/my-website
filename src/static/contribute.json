@@ -1,11 +1,11 @@
 {
   "name": "Siteul lu' Gennerator",
-  "description": "Website written in JS using NodeJS. I just started learning Node (JS in general)",
+  "description": "Website written in TypeScript(JavaScript) using NodeJS. I just started learning Node (JS in general)",
   "repository": {
     "url": "https://github.com/GenneratorX/my-website",
     "license": "GPLv3",
     "type": "git",
     "clone": "https://github.com/GenneratorX/my-website.git"
   },
-  "keywords": ["nodejs", "website", "express", "handlebars", "argon2", "postgresql", "redis", "typescript", "javascript", "html5", "css3"]
+  "keywords": ["nodejs", "website", "express", "handlebars", "argon2", "postgresql", "redis", "websocket", "typescript", "javascript", "html5", "css3"]
 }

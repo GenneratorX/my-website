@@ -28,30 +28,19 @@
   ],
   "rules": {
     "semi": 0,
-    "max-len": [
-      "error",
-      {
-        "code": 120
+    "max-len": ["error", { "code": 120}],
+    "space-before-function-paren": ["error", "never"],
+    "comma-dangle": ["error", {
+        "arrays": "never",
+        "objects": "always-multiline",
+        "imports": "never",
+        "exports": "never",
+        "functions": "never"
       }
-    ],
-    "space-before-function-paren": [
-      "error",
-      "never"
     ],
     "@typescript-eslint/no-use-before-define": 0,
-    "@typescript-eslint/semi": [
-      "error"
-    ],
-    "@typescript-eslint/indent": [
-      "error",
-      2
-    ],
-    "@typescript-eslint/quotes": [
-      "error",
-      "single",
-      {
-        "allowTemplateLiterals": true
-      }
-    ]
+    "@typescript-eslint/semi": ["error"],
+    "@typescript-eslint/indent": ["error", 2],
+    "@typescript-eslint/quotes": ["error", "single", { "allowTemplateLiterals": true }]
   }
 }

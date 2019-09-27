@@ -7,6 +7,7 @@ import session = require('express-session');
 import Redis = require('ioredis');
 const RedisStore = require('connect-redis')(session); // eslint-disable-line @typescript-eslint/no-var-requires
 import { RateLimiterRedis } from 'rate-limiter-flexible';
+import { Server as WSServer } from 'ws';
 
 import crypto = require('crypto');
 
@@ -16,6 +17,8 @@ import * as db from './modules/db';
 import * as util from './modules/util';
 
 const app = express();
+const server = app.listen(env.PORT, () => console.log(`Aplicatia ruleaza pe portul ${env.PORT}!`));
+
 app.engine('handlebars', exhb({
   layoutsDir: 'app/views/layouts',
   partialsDir: 'app/views/partials',
@@ -27,14 +30,123 @@ app.set('x-powered-by', false);
 app.set('etag', false);
 app.set('trust proxy', '127.0.0.1');
 
-const client = new Redis({ enableOfflineQueue: false });
-
 app.use(bodyParser.json({
   strict: true,
   type: 'application/json',
 }));
 
-app.use(session({
+// WEBSOCKET -------------------------------------
+const wss = new WSServer({ path: '/ws', maxPayload: 256, noServer: true });
+
+let i = 1;
+const usedNumbers: string[] = [];
+const colors = [
+  'red',
+  'green',
+  'blue',
+  'orange',
+  'purple',
+  'yellow',
+  'brown',
+  'pink',
+  'teal'
+];
+
+wss.on('connection', (ws) => {
+
+  // Socket custom properties --------------------
+  ws.isAlive = true;
+  if (usedNumbers.length != 0) {
+    ws.name = 'Anonim-' + usedNumbers.shift();
+  } else {
+    ws.name = 'Anonim-' + i;
+    i++;
+  }
+  ws.color = colors[Math.floor(Math.random() * colors.length)];
+
+  const usernames = [ws.name];
+  const usersColor = [ws.color];
+  wss.clients.forEach(client => {
+    if (client != ws) {
+      usernames.push(client.name);
+      usersColor.push(client.color);
+    }
+  });
+  // --------------------------------------------
+  ws.send(JSON.stringify({
+    event: 'userList',
+    usernames: usernames,
+    usersColor: usersColor,
+  }));
+
+  wss.clients.forEach(client => {
+    if (client != ws) {
+      client.send(JSON.stringify({
+        event: 'userConnect',
+        username: ws.name,
+        usernameColor: ws.color,
+      }));
+    }
+  });
+
+  ws.on('message', (message) => {
+    wss.clients.forEach(client => {
+      client.send(JSON.stringify({
+        event: 'userMessage',
+        username: ws.name,
+        usernameColor: ws.color,
+        message: message,
+      }));
+    });
+  });
+
+  ws.on('pong', () => {
+    ws.isAlive = true;
+  });
+
+  ws.on('close', () => {
+    usedNumbers.push(ws.name.split('-')[1]);
+    wss.clients.forEach(client => {
+      if (client != ws) {
+        client.send(JSON.stringify({
+          event: 'userDisconnect',
+          username: ws.name,
+          usernameColor: ws.color,
+        }));
+      }
+    });
+  });
+
+  ws.on('error', (err) => {
+    console.log(err);
+  });
+});
+
+server.on('upgrade', function(req, socket, head) {
+  if (req.headers.origin && req.headers.origin === 'https://gennerator.com') {
+    wss.handleUpgrade(req, socket, head, function(ws) {
+      wss.emit('connection', ws, req);
+    });
+  } else {
+    socket.destroy();
+    return;
+  }
+});
+
+setInterval(function ping() {
+  wss.clients.forEach(function each(ws) {
+    if (ws.isAlive === false) {
+      return ws.terminate();
+    }
+    ws.isAlive = false;
+    ws.ping(null);
+  });
+}, 30000);
+// -------------------------------------------------
+
+const client = new Redis({ enableOfflineQueue: false });
+
+app.use(session({ // lgtm [js/missing-token-validation]
   name: '__Host-sessionID',
   secret: env.COOKIE_SECRET,
   saveUninitialized: false,
@@ -79,16 +191,16 @@ app.get('*', function(req, res, next) {
   crypto.randomBytes(16, (error, buffer) => {
     if (!error) {
       res.locals.nonce = buffer.toString('base64');
-      res.header('Content-Security-Policy',
-        `default-src 'none'; script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}'; img-src 'self'; ` +
-        `connect-src 'self'; style-src 'self' 'nonce-${res.locals.nonce}'; font-src 'self'; object-src 'none'; ` +
-        `media-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; manifest-src 'self'; ` +
-        `report-uri https://gennerator.report-uri.com/r/d/csp/enforce; report-to default`
+      res.setHeader('Content-Security-Policy',
+        `default-src 'none'; base-uri 'none'; connect-src 'self'; font-src 'self'; form-action 'self'; ` +
+        `frame-ancestors 'none'; img-src 'self'; manifest-src 'self'; media-src 'self'; object-src 'none'; ` +
+        `report-to default; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; ` +
+        `script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}'; style-src 'self' 'nonce-${res.locals.nonce}'`
       );
-      res.header('Feature-Policy',
+      res.setHeader('Feature-Policy',
         `accelerometer 'none'; ambient-light-sensor 'none'; autoplay 'none'; camera 'none'; encrypted-media 'none'; ` +
         `fullscreen 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; ` +
-        `midi 'none'; payment 'none'; speaker 'self'; sync-xhr 'none'; usb 'none'; vr 'none'`
+        `midi 'none'; payment 'none'; speaker 'none'; sync-xhr 'none'; usb 'none'; vr 'none'`
       );
       next();
     } else {
@@ -132,6 +244,25 @@ app.get('/partajare', function(req, res) {
   res.render('partajare', {
     pageTitle: 'Partajare',
     pageDescription: 'Partajare privată de fișiere, încărcare și organizare fișiere personale.',
+  });
+});
+
+app.get('/sync', function(req, res) {
+  res.setHeader('Content-Security-Policy',
+    `default-src 'none'; base-uri 'none'; connect-src 'self'; font-src 'self'; form-action 'self'; ` +
+    `frame-ancestors 'none'; frame-src https://www.youtube.com; img-src 'self' https://i.ytimg.com; ` +
+    `manifest-src 'self'; media-src 'self'; object-src 'none'; report-to default; ` +
+    `report-uri https://gennerator.report-uri.com/r/d/csp/enforce; ` +
+    `script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}'; style-src 'self' 'nonce-${res.locals.nonce}'`
+  );
+  res.setHeader('Feature-Policy',
+    `accelerometer 'self'; ambient-light-sensor 'none'; autoplay 'self'; camera 'none'; encrypted-media 'self'; ` +
+    `fullscreen 'self'; geolocation 'none'; gyroscope 'self'; magnetometer 'none'; microphone 'none'; ` +
+    `midi 'none'; payment 'none'; speaker 'self'; sync-xhr 'none'; usb 'none'; vr 'none'`
+  );
+  res.render('sync', {
+    pageTitle: 'Youtube Sync',
+    pageDescription: 'Vizualizare conținut YouTube în grup',
   });
 });
 
@@ -277,8 +408,6 @@ app.post('/emailExists', function(req, res) {
 app.use(function(req, res) {
   res.status(404).render('404', {
     pageTitle: 'Nimic aici',
-    pageDescription: 'Resursa accesată nu există'
+    pageDescription: 'Resursa accesată nu există',
   });
 });
-
-app.listen(env.PORT, () => console.log(`Aplicatia ruleaza pe portul ${env.PORT}!`));
