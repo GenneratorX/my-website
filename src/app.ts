@@ -36,7 +36,7 @@ app.use(bodyParser.json({
 }));
 
 // WEBSOCKET -------------------------------------
-const wss = new WSServer({ path: '/ws', maxPayload: 256, noServer: true });
+const wss = new WSServer({ path: '/ws', maxPayload: 512, noServer: true });
 
 let i = 1;
 const usedNumbers: string[] = [];
@@ -53,8 +53,7 @@ const colors = [
 ];
 
 wss.on('connection', (ws) => {
-
-  // Socket custom properties --------------------
+  // Socket custom properties ------------------------------------------------------------------------------------------
   ws.isAlive = true;
   if (usedNumbers.length != 0) {
     ws.name = 'Anonim-' + usedNumbers.shift();
@@ -63,41 +62,46 @@ wss.on('connection', (ws) => {
     i++;
   }
   ws.color = colors[Math.floor(Math.random() * colors.length)];
-
+  // Announce room join and send user list -----------------------------------------------------------------------------
   const usernames = [ws.name];
   const usersColor = [ws.color];
-  wss.clients.forEach(client => {
+  wss.clients.forEach((client) => {
     if (client != ws) {
       usernames.push(client.name);
       usersColor.push(client.color);
+      client.send(JSON.stringify({
+        event: 'userConnect',
+        user: {
+          name: ws.name,
+          color: ws.color,
+        },
+      }));
     }
   });
-  // --------------------------------------------
   ws.send(JSON.stringify({
     event: 'userList',
     usernames: usernames,
     usersColor: usersColor,
   }));
-
-  wss.clients.forEach(client => {
-    if (client != ws) {
-      client.send(JSON.stringify({
-        event: 'userConnect',
-        username: ws.name,
-        usernameColor: ws.color,
-      }));
-    }
-  });
-
+  // -------------------------------------------------------------------------------------------------------------------
   ws.on('message', (message) => {
-    wss.clients.forEach(client => {
-      client.send(JSON.stringify({
-        event: 'userMessage',
-        username: ws.name,
-        usernameColor: ws.color,
-        message: message,
-      }));
-    });
+    const data = JSON.parse(message.toString());
+    if (data && data.event) {
+      switch (data.event) {
+        case 'userMessage':
+          wss.clients.forEach((client) => {
+            client.send(JSON.stringify({
+              event: 'userMessage',
+              user: {
+                name: ws.name,
+                color: ws.color,
+              },
+              message: data.message,
+            }));
+          });
+          break;
+      }
+    }
   });
 
   ws.on('pong', () => {
@@ -106,12 +110,14 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     usedNumbers.push(ws.name.split('-')[1]);
-    wss.clients.forEach(client => {
+    wss.clients.forEach((client) => {
       if (client != ws) {
         client.send(JSON.stringify({
           event: 'userDisconnect',
-          username: ws.name,
-          usernameColor: ws.color,
+          user: {
+            name: ws.name,
+            color: ws.color,
+          },
         }));
       }
     });
@@ -141,7 +147,7 @@ setInterval(function ping() {
     ws.isAlive = false;
     ws.ping(null);
   });
-}, 30000);
+}, 25000);
 // -------------------------------------------------
 
 const client = new Redis({ enableOfflineQueue: false });
@@ -253,7 +259,8 @@ app.get('/sync', function(req, res) {
     `frame-ancestors 'none'; frame-src https://www.youtube.com; img-src 'self' https://i.ytimg.com; ` +
     `manifest-src 'self'; media-src 'self'; object-src 'none'; report-to default; ` +
     `report-uri https://gennerator.report-uri.com/r/d/csp/enforce; ` +
-    `script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}'; style-src 'self' 'nonce-${res.locals.nonce}'`
+    `script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}' https://s.ytimg.com/yts/jsbin/; ` +
+    `style-src 'self' 'nonce-${res.locals.nonce}'`
   );
   res.setHeader('Feature-Policy',
     `accelerometer 'self'; ambient-light-sensor 'none'; autoplay 'self'; camera 'none'; encrypted-media 'self'; ` +

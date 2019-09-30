@@ -1,16 +1,14 @@
 /** @preserve sync.js */
 'use strict';
 
-const a = document.createElement('script');
-a.id = 'www-widgetapi-script';
-a.src = 'https://s.ytimg.com/yts/jsbin/www-widgetapi-vflgu2Ceb/www-widgetapi.js';
-a.async = true;
-document.head.appendChild(a);
-
-const userListLabel = document.getElementById('userListLabel') as HTMLDivElement;
+const youtubeLink = document.getElementById('youtubeLink') as HTMLInputElement;
 const userList = document.getElementById('chatUsers') as HTMLDivElement;
 const chat = document.getElementById('chat-box') as HTMLDivElement;
 const messageBox = document.getElementById('messageBox') as HTMLInputElement;
+
+const youTubeRegexp = new RegExp(
+  '^(?:https?:\\/\\/)?(?:m\\.|www\\.)?(?:youtu\\.be\\/|youtube\\.com\\/(?:embed\\/|v\\/|watch\\?v=|watch\\?.+&v=))' +
+  '((\\w|-){11})(\\?\\S*)?$');
 
 let initial = false;
 let retryCounter = 0;
@@ -42,7 +40,7 @@ function connect(): void {
         connect();
         retryCounter++;
       }
-    }, 35000);
+    }, 30000);
     retryCounter = 0;
   };
 
@@ -63,7 +61,10 @@ function connect(): void {
 
   messageBox.onkeyup = function(key): void {
     if (key.keyCode === 13) {
-      ws.send(messageBox.value.replace(/\s+/g, ' ').trim());
+      ws.send(JSON.stringify({
+        'event': 'userMessage',
+        'message': messageBox.value.replace(/\s+/g, ' ').trim(),
+      }));
       messageBox.value = '';
     }
   };
@@ -82,30 +83,30 @@ messageBox.onblur = function(): void {
  * @param message The message
  */
 function handleMessage(message: string): void {
-  const json = JSON.parse(message);
-  if (json['event'] != 'userList') {
+  const data = JSON.parse(message);
+  if (data['event'] != 'userList') {
     const msg = document.createElement('div');
     const username = document.createElement('span');
     setAttributes(msg, { 'class': 'message' });
-    setAttributes(username, { 'class': `bold ${json['usernameColor']}` });
-    switch (json['event']) {
+    setAttributes(username, { 'class': `bold ${data['user'].color}` });
+    switch (data['event']) {
       case 'userMessage':
-        username.textContent = json['username'] + ': ';
-        msg.textContent = json['message'];
+        username.textContent = data['user'].name + ': ';
+        msg.textContent = data['message'];
         break;
       case 'userConnect':
-        username.textContent = json['username'];
+        username.textContent = data['user'].name;
         msg.textContent = ' s-a conectat!';
         msg.className += ' bold';
 
-        userListAdd(json['username'], json['usernameColor']);
+        userListAdd(data['user'].name, data['user'].color);
         userCountUpdate(++userCount);
         break;
       case 'userDisconnect':
-        username.textContent = json['username'];
+        username.textContent = data['user'].name;
         msg.textContent = ' s-a deconectat!';
         msg.className += ' bold';
-        userListRemove(json['username']);
+        userListRemove(data['user'].name);
         userCountUpdate(--userCount);
         break;
     }
@@ -113,10 +114,10 @@ function handleMessage(message: string): void {
     msg.insertAdjacentElement('afterbegin', username);
     msg.scrollIntoView({ behavior: 'smooth', block: 'end' });
   } else {
-    for (let i = 0; i < json['usernames'].length; i++) {
-      userListAdd(json['usernames'][i], json['usersColor'][i]);
+    for (let i = 0; i < data['usernames'].length; i++) {
+      userListAdd(data['usernames'][i], data['usersColor'][i]);
     }
-    userCount = json['usernames'].length;
+    userCount = data['usernames'].length;
     userCountUpdate(userCount);
   }
 }
@@ -150,39 +151,65 @@ function userListRemove(username: string): void {
  * @param count The number of users
  */
 function userCountUpdate(count: number): void {
-  userListLabel.textContent = `Utilizatori conectați (${count})`;
+  (document.getElementById('userCount') as HTMLSpanElement).textContent = count.toString();
 }
 
 let player: YT.Player;
 
-function onYoutubeIframeAPIReady(): void {
-  player = new YT.Player('player', {
-    videoId: '5ZosFi-IzRU',
-    playerVars: {
-      'start': 0,
-      'enablejsapi': 1,
-      'origin': 'https://gennerator.com',
-    },
-    events: {
-      'onReady': onPlayerReady,
-      'onStateChange': onPlayerStateChange,
-    },
-  });
-}
+youtubeLink.onkeyup = function(key): void {
+  if (youTubeRegexp.test(youtubeLink.value)) {
+    youtubeLink.classList.remove('lRed');
+    youtubeLink.classList.add('lGreen');
+  } else {
+    if (youtubeLink.value.length > 0) {
+      youtubeLink.classList.remove('lGreen');
+      youtubeLink.classList.add('lRed');
+    } else {
+      youtubeLink.className = 'messageBox';
+    }
+  }
+  if (key.keyCode === 13) {
+    if (youtubeLink.classList.contains('lGreen')) {
+      const videoID = youtubeLink.value.split(youTubeRegexp)[1];
+      if (player) {
+        player.cueVideoById({
+          'videoId': videoID,
+          'startSeconds': 0,
+          'suggestedQuality': 'default',
+        });
+      } else {
+        player = new YT.Player('player', {
+          'videoId': videoID,
+          'playerVars': {
+            'start': 0,
+            'enablejsapi': 1,
+            'origin': 'https://gennerator.com',
+          },
+          'events': {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange,
+            'onError': onPlayerError,
+          },
+        });
+      }
+      youtubeLink.value = '';
+      youtubeLink.classList.remove('lGreen');
+    } else {
+      snackbar('Link-ul introdus nu este valid!', 2);
+    }
+  }
+};
 
 function onPlayerReady(event: YT.PlayerEvent): void {
-  event.target.playVideo();
+  console.log('YouTube Player Ready');
 }
 
-let done = false;
 function onPlayerStateChange(event: YT.OnStateChangeEvent): void {
-  if (event.data == YT.PlayerState.PLAYING && !done) {
-    setTimeout(stopVideo, 6000);
-    done = true;
-  }
+  console.log('Player status: ' + event.data);
 }
-function stopVideo(): void {
-  player.stopVideo();
+
+function onPlayerError(event: YT.OnErrorEvent): void {
+  console.log('Player error: ' + event.data);
 }
 
 connect();

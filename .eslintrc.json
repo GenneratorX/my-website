@@ -27,17 +27,18 @@
     "@typescript-eslint/eslint-plugin"
   ],
   "rules": {
-    "semi": 0,
-    "max-len": ["error", { "code": 120}],
-    "space-before-function-paren": ["error", "never"],
+    "arrow-parens": ["error", "always"],
     "comma-dangle": ["error", {
-        "arrays": "never",
-        "objects": "always-multiline",
-        "imports": "never",
-        "exports": "never",
-        "functions": "never"
-      }
-    ],
+      "arrays": "never",
+      "objects": "always-multiline",
+      "imports": "never",
+      "exports": "never",
+      "functions": "never"
+    }],
+    "keyword-spacing": ["error"],
+    "max-len": ["error", { "code": 120 }],
+    "semi": 0,
+    "space-before-function-paren": ["error", "never"],
     "@typescript-eslint/no-use-before-define": 0,
     "@typescript-eslint/semi": ["error"],
     "@typescript-eslint/indent": ["error", 2],

@@ -27,6 +27,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  scrollbar-width: thin;
 }
 
 body {
@@ -34,6 +35,8 @@ body {
   flex-direction: column;
   font-family: 'Raleway', Arial, sans-serif;
   height: 100vh;
+  -ms-overflow-style: none;
+  scrollbar-color: #363636 transparent;
 }
 
 img {
@@ -214,8 +217,18 @@ input:hover[type='submit'] {
 
 .video-controls {
   border: 2px #363636 solid;
+  display: flex;
+  flex-direction: column;
   grid-area: 7 / 2 / 9 / 5;
   margin-right: 0.5em;
+}
+
+.videoControls {
+  padding: 0.1rem 0.5rem 0.1rem 1rem;
+}
+
+.youtubeLink {
+  color: #fff;
 }
 
 .chat-users {
@@ -264,12 +277,6 @@ input:hover[type='submit'] {
   padding: 0.1rem 0.5rem 0.1rem 1rem;
   resize: none;
   width: 100%;
-}
-
-.chat-box::-webkit-scrollbar,
-.chatUsers::-webkit-scrollbar,
-.messageBox::-webkit-scrollbar {
-  display: none;
 }
 
 .message {
@@ -428,9 +435,18 @@ input:hover[type='submit'] {
   color: #00aba9;
 }
 
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #363636;
+  border-radius: 50px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 ::selection {
