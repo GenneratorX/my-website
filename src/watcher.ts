@@ -14,7 +14,7 @@ const pathSrcJs = 'src/static/js/';
 const watcher = chokidar.watch(['./src', './app'], {
   ignored: /.*\.br$/,
   persistent: true,
-  depth: 2,
+  depth: 3,
   awaitWriteFinish: {
     stabilityThreshold: 200,
     pollInterval: 100,

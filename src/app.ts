@@ -201,7 +201,7 @@ app.get('*', function(req, res, next) {
         `default-src 'none'; base-uri 'none'; connect-src 'self'; font-src 'self'; form-action 'self'; ` +
         `frame-ancestors 'none'; img-src 'self'; manifest-src 'self'; media-src 'self'; object-src 'none'; ` +
         `report-to default; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; ` +
-        `script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}'; style-src 'self' 'nonce-${res.locals.nonce}'`
+        `script-src 'strict-dynamic' 'nonce-${res.locals.nonce}'; style-src 'self' 'nonce-${res.locals.nonce}'`
       );
       res.setHeader('Feature-Policy',
         `accelerometer 'none'; ambient-light-sensor 'none'; autoplay 'none'; camera 'none'; encrypted-media 'none'; ` +
@@ -255,12 +255,11 @@ app.get('/partajare', function(req, res) {
 
 app.get('/sync', function(req, res) {
   res.setHeader('Content-Security-Policy',
-    `default-src 'none'; base-uri 'none'; connect-src 'self'; font-src 'self'; form-action 'self'; ` +
-    `frame-ancestors 'none'; frame-src https://www.youtube.com; img-src 'self' https://i.ytimg.com; ` +
-    `manifest-src 'self'; media-src 'self'; object-src 'none'; report-to default; ` +
-    `report-uri https://gennerator.report-uri.com/r/d/csp/enforce; ` +
-    `script-src 'self' 'strict-dynamic' 'nonce-${res.locals.nonce}' https://s.ytimg.com/yts/jsbin/; ` +
-    `style-src 'self' 'nonce-${res.locals.nonce}'`
+    `default-src 'none'; base-uri 'none'; connect-src 'self' wss://gennerator.com/ws; font-src 'self'; ` +
+    `form-action 'self'; frame-ancestors 'none'; frame-src https://www.youtube.com/embed/; ` +
+    `img-src 'self' https://i.ytimg.com; manifest-src 'self'; media-src 'self'; object-src 'none'; ` +
+    `report-to default; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; ` +
+    `script-src 'strict-dynamic' 'nonce-${res.locals.nonce}'; style-src 'self' 'nonce-${res.locals.nonce}'`
   );
   res.setHeader('Feature-Policy',
     `accelerometer 'self'; ambient-light-sensor 'none'; autoplay 'self'; camera 'none'; encrypted-media 'self'; ` +
