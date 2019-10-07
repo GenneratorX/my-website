@@ -10,6 +10,7 @@ import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { Server as WSServer } from 'ws';
 
 import crypto = require('crypto');
+import https = require('https');
 
 import * as env from './env';
 import * as auth from './modules/auth';
@@ -36,7 +37,7 @@ app.use(bodyParser.json({
 }));
 
 // WEBSOCKET -------------------------------------
-const wss = new WSServer({ path: '/ws', maxPayload: 512, noServer: true });
+const wss = new WSServer({ path: '/ws', maxPayload: 200, noServer: true });
 
 let i = 1;
 const usedNumbers: string[] = [];
@@ -51,6 +52,7 @@ const colors = [
   'pink',
   'teal'
 ];
+let videoList: string[] = [];
 
 wss.on('connection', (ws) => {
   // Socket custom properties ------------------------------------------------------------------------------------------
@@ -63,12 +65,12 @@ wss.on('connection', (ws) => {
   }
   ws.color = colors[Math.floor(Math.random() * colors.length)];
   // Announce room join and send user list -----------------------------------------------------------------------------
-  const usernames = [ws.name];
-  const usersColor = [ws.color];
+  const userList = [ws.name];
+  const userColorList = [ws.color];
   wss.clients.forEach((client) => {
     if (client != ws) {
-      usernames.push(client.name);
-      usersColor.push(client.color);
+      userList.push(client.name);
+      userColorList.push(client.color);
       client.send(JSON.stringify({
         event: 'userConnect',
         user: {
@@ -79,9 +81,10 @@ wss.on('connection', (ws) => {
     }
   });
   ws.send(JSON.stringify({
-    event: 'userList',
-    usernames: usernames,
-    usersColor: usersColor,
+    event: 'join',
+    userList: userList,
+    userColorList: userColorList,
+    videoList: videoList,
   }));
   // -------------------------------------------------------------------------------------------------------------------
   ws.on('message', (message) => {
@@ -99,6 +102,60 @@ wss.on('connection', (ws) => {
               message: data.message,
             }));
           });
+          break;
+        case 'ytAddVideo':
+          if (data.videoID && /^[a-zA-Z0-9_-]{11}$/.test(data.videoID)) {
+            if (!videoList.includes(data.videoID)) {
+              https.request({
+                hostname: 'i.ytimg.com',
+                port: 443,
+                path: `/vi/${data.videoID}/default.jpg`,
+                method: 'HEAD',
+              }, (res) => {
+                if (res.statusCode == 200) {
+                  videoList.push(data.videoID);
+                  wss.clients.forEach((client) => {
+                    client.send(JSON.stringify({
+                      event: 'ytAddVideo',
+                      status: 'addVideo',
+                      videoID: data.videoID,
+                    }));
+                  });
+                } else {
+                  ws.send(JSON.stringify({
+                    event: 'ytAddVideo',
+                    status: 'notAvailable',
+                  }));
+                }
+              }).on('error', (error) => {
+                console.log(error);
+                ws.send(JSON.stringify({
+                  event: 'ytAddVideo',
+                  status: 'connectionError',
+                }));
+              }).end();
+            } else {
+              ws.send(JSON.stringify({
+                event: 'ytAddVideo',
+                status: 'videoExists',
+              }));
+            }
+          }
+          break;
+        case 'ytRemoveVideo':
+          if (data.videoID && videoList.includes(data.videoID)) {
+            for (let i = 0; i < videoList.length; i++) {
+              if (videoList[i] == data.videoID) {
+                videoList.splice(i, 1);
+              }
+            }
+            wss.clients.forEach((client) => {
+              client.send(JSON.stringify({
+                event: 'ytRemoveVideo',
+                videoID: data.videoID,
+              }));
+            });
+          }
           break;
       }
     }
@@ -121,6 +178,9 @@ wss.on('connection', (ws) => {
         }));
       }
     });
+    /*if (wss.clients.size == 0) {
+      videoList = [];
+    }*/
   });
 
   ws.on('error', (err) => {
@@ -208,6 +268,7 @@ app.get('*', function(req, res, next) {
         `fullscreen 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; ` +
         `midi 'none'; payment 'none'; speaker 'none'; sync-xhr 'none'; usb 'none'; vr 'none'`
       );
+      res.setHeader('Referrer-Policy', 'same-origin');
       next();
     } else {
       console.log(error);
@@ -255,9 +316,10 @@ app.get('/partajare', function(req, res) {
 
 app.get('/sync', function(req, res) {
   res.setHeader('Content-Security-Policy',
-    `default-src 'none'; base-uri 'none'; connect-src 'self' wss://gennerator.com/ws; font-src 'self'; ` +
-    `form-action 'self'; frame-ancestors 'none'; frame-src https://www.youtube.com/embed/; ` +
-    `img-src 'self' https://i.ytimg.com; manifest-src 'self'; media-src 'self'; object-src 'none'; ` +
+    `default-src 'none'; base-uri 'none'; connect-src 'self' wss://gennerator.com/ws ` +
+    `https://noembed.com/embed; font-src 'self'; form-action 'self'; frame-ancestors 'none'; ` +
+    `frame-src https://www.youtube.com/embed/; img-src 'self' https://i.ytimg.com; manifest-src 'self'; ` +
+    `media-src 'self'; object-src 'none'; ` +
     `report-to default; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; ` +
     `script-src 'strict-dynamic' 'nonce-${res.locals.nonce}'; style-src 'self' 'nonce-${res.locals.nonce}'`
   );
@@ -266,6 +328,7 @@ app.get('/sync', function(req, res) {
     `fullscreen 'self'; geolocation 'none'; gyroscope 'self'; magnetometer 'none'; microphone 'none'; ` +
     `midi 'none'; payment 'none'; speaker 'self'; sync-xhr 'none'; usb 'none'; vr 'none'`
   );
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.render('sync', {
     pageTitle: 'Youtube Sync',
     pageDescription: 'Vizualizare conținut YouTube în grup',

@@ -40,9 +40,9 @@ if (hamburger) {
 /**
  * Sets attributes on a HTML element
  * @param elem HTML element
- * @param attr Object containing attribute names and its values
+ * @param attr Object containing attribute names and their values
  */
-function setAttributes(elem: HTMLElement, attr: { [s: string]: string }): void {
+function setAttributes(elem: HTMLElement, attr: { [property: string]: string }): void {
   for (const n in attr) {
     if (!Object.prototype.hasOwnProperty.call(elem, n)) {
       elem.setAttribute(n, attr[n]);
@@ -57,8 +57,8 @@ function setAttributes(elem: HTMLElement, attr: { [s: string]: string }): void {
  * @param req Data to send
  */
 function fetcH(
-  method: 'GET' | 'POST', url: string, req: { [key: string]: string | number | boolean }):
-  Promise<{ [key: string]: string | number | boolean }> {
+  method: 'GET' | 'POST', url: string, req: { [property: string]: string | number | boolean }):
+  Promise<{ [property: string]: string | number | boolean }> {
   return fetch(url, {
     method: method,
     mode: 'same-origin',
@@ -67,6 +67,23 @@ function fetcH(
       'Content-Type': 'application/json; charset=utf-8',
     },
     body: JSON.stringify(req),
+  }).then((res) => {
+    if (res.ok) {
+      return res.json();
+    }
+    throw new Error(res.status.toString());
+  });
+}
+
+/**
+ * Sends a fetch request to another origin
+ * @param url URL to send the request to
+ */
+function fetchCORS(url: string): Promise<{ [property: string]: string | number | boolean }> {
+  return fetch(url, {
+    method: 'GET',
+    mode: 'cors',
+    credentials: 'omit',
   }).then((res) => {
     if (res.ok) {
       return res.json();
