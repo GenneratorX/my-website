@@ -1,12 +1,12 @@
 /** @preserve sync.js */
 'use strict';
 
-const videoPlayer = document.getElementById('video-player') as HTMLDivElement;
-const videoList = document.getElementById('videoList') as HTMLDivElement;
-const youtubeLink = document.getElementById('youtubeLink') as HTMLInputElement;
-const userList = document.getElementById('chatUsers') as HTMLDivElement;
-const chat = document.getElementById('chat-box') as HTMLDivElement;
-const messageBox = document.getElementById('messageBox') as HTMLInputElement;
+const videoPlayerDiv = document.getElementById('video-player') as HTMLDivElement;
+const videoListDiv = document.getElementById('videoList') as HTMLDivElement;
+const youtubeLinkInput = document.getElementById('youtubeLink') as HTMLInputElement;
+const userListDiv = document.getElementById('chatUsers') as HTMLDivElement;
+const chatDiv = document.getElementById('chat-box') as HTMLDivElement;
+const messageBoxInput = document.getElementById('messageBox') as HTMLInputElement;
 
 let initial = false;
 
@@ -17,6 +17,8 @@ const youTubeRegexp = new RegExp(
 let userCount = 0;
 let retryCounter = 0;
 const maxRetries = 5;
+
+let videoInit = false;
 
 let ws: WebSocket;
 let player: YT.Player;
@@ -36,13 +38,18 @@ function connect(): void {
     }
 
     // Clear the user list
-    while (userList.firstChild) {
-      userList.removeChild(userList.firstChild);
+    while (userListDiv.firstChild) {
+      userListDiv.removeChild(userListDiv.firstChild);
     }
 
     // Clear the video list
-    while (videoList.firstChild) {
-      videoList.removeChild(videoList.firstChild);
+    while (videoListDiv.firstChild) {
+      videoListDiv.removeChild(videoListDiv.firstChild);
+    }
+
+    // Remove the player iframe if exists
+    if (player) {
+      player.destroy();
     }
 
     interval = setInterval(function() {
@@ -70,31 +77,31 @@ function connect(): void {
   };
 }
 
-messageBox.onkeydown = function(key): void {
+messageBoxInput.onkeydown = function(key): void {
   if (key.keyCode === 13) {
     key.preventDefault();
   }
 };
 
-messageBox.onkeyup = function(key): void {
+messageBoxInput.onkeyup = function(key): void {
   if (key.keyCode === 13) {
-    const msg = messageBox.value.replace(/\s+/g, ' ').trim();
+    const msg = messageBoxInput.value.replace(/\s+/g, ' ').trim();
     if (msg.length > 0) {
       ws.send(JSON.stringify({
         'event': 'userMessage',
         'message': msg,
       }));
     }
-    messageBox.value = '';
+    messageBoxInput.value = '';
   }
 };
 
-messageBox.onfocus = function(): void {
-  messageBox.placeholder = '';
+messageBoxInput.onfocus = function(): void {
+  messageBoxInput.placeholder = '';
 };
 
-messageBox.onblur = function(): void {
-  messageBox.placeholder = 'Mesajul tău...';
+messageBoxInput.onblur = function(): void {
+  messageBoxInput.placeholder = 'Mesajul tău...';
 };
 
 /**
@@ -112,6 +119,9 @@ function handleMessage(message: string): void {
       userCountUpdate(userCount);
       for (let i = 0; i < data['videoList'].length; i++) {
         videoListAdd(data['videoList'][i]);
+      }
+      if (data['currentVideo'] != '') {
+        cueVideo(data['currentVideo']);
       }
       break;
     case 'userConnect':
@@ -131,7 +141,9 @@ function handleMessage(message: string): void {
       switch (data['status']) {
         case 'addVideo':
           videoListAdd(data['videoID']);
-          cueVideo(data['videoID']);
+          if (document.getElementsByTagName('iframe').length == 0) {
+            sendToQueue(data['videoID']);
+          }
           break;
         case 'notAvailable':
           snackbar('Videoclipul introdus nu există!', 2);
@@ -144,9 +156,30 @@ function handleMessage(message: string): void {
       break;
     case 'ytRemoveVideo':
       videoListRemove(data['videoID']);
+      if (player.getVideoUrl().substr(-11) == data['videoID']) {
+        player.destroy();
+      }
+      break;
+    case 'ytCueVideo':
+      cueVideo(data['videoID']);
+      break;
+    case 'ytStartVideo':
+      player.playVideo();
+      break;
+    case 'ytPlayVideo':
+      player.playVideo();
       break;
   }
 }
+
+/**
+ * Updates the user count
+ * @param count The number of users
+ */
+function userCountUpdate(count: number): void {
+  (document.getElementById('userCount') as HTMLSpanElement).textContent = count.toString();
+}
+
 
 /**
  * Displays a message in the chat
@@ -168,9 +201,9 @@ function displayMessage(username: string, usernameColor: string, type: 'message'
     usr.textContent += ' ';
     msg.className += ' bold';
   }
-  chat.appendChild(msg);
+  chatDiv.appendChild(msg);
   msg.insertAdjacentElement('afterbegin', usr);
-  chat.scrollTop = msg.offsetTop;
+  chatDiv.scrollTop = msg.offsetTop;
 }
 
 /**
@@ -182,7 +215,7 @@ function userListAdd(username: string, usernameColor: string): void {
   const user = document.createElement('div');
   user.textContent = username;
   user.className = 'bold message ' + usernameColor;
-  userList.appendChild(user);
+  userListDiv.appendChild(user);
 }
 
 /**
@@ -190,9 +223,9 @@ function userListAdd(username: string, usernameColor: string): void {
  * @param username Username to remove
  */
 function userListRemove(username: string): void {
-  for (let i = 0; i < userList.childNodes.length; i++) {
-    if (userList.childNodes[i].textContent == username) {
-      userList.removeChild(userList.childNodes[i]);
+  for (let i = 0; i < userListDiv.childNodes.length; i++) {
+    if (userListDiv.childNodes[i].textContent == username) {
+      userListDiv.removeChild(userListDiv.childNodes[i]);
     }
   }
 }
@@ -250,11 +283,9 @@ function videoListAdd(videoID: string): void {
     }));
   };
   videoThumbnail.onclick = function(): void {
-    cueVideo(videoID);
+    sendToQueue(videoID);
   };
-  videoName.onclick = function(): void {
-    cueVideo(videoID);
-  };
+  videoName.onclick = videoThumbnail.onclick;
 
   videoThumbnail.appendChild(videoThumbnailSource);
   videoThumbnail.appendChild(videoThumbnailImg);
@@ -262,8 +293,19 @@ function videoListAdd(videoID: string): void {
   videoInfo.appendChild(videoName);
   video.appendChild(videoThumbnail);
   video.appendChild(videoInfo);
-  videoList.appendChild(video);
-  videoList.scrollTop = video.offsetTop;
+  videoListDiv.appendChild(video);
+  videoListDiv.scrollTop = video.offsetTop;
+}
+
+/**
+ * Event handler when clicking on a video from the playlist
+ * @param videoID Video ID to send to the queue
+ */
+function sendToQueue(videoID: string): void {
+  ws.send(JSON.stringify({
+    'event': 'ytCueVideo',
+    'videoID': videoID,
+  }));
 }
 
 /**
@@ -271,7 +313,7 @@ function videoListAdd(videoID: string): void {
  * @param videoID Video ID to remove from the playlist
  */
 function videoListRemove(videoID: string): void {
-  videoList.removeChild(document.getElementById(videoID) as HTMLDivElement);
+  videoListDiv.removeChild(document.getElementById(videoID) as HTMLDivElement);
 }
 
 /**
@@ -304,39 +346,31 @@ function cueVideo(videoID: string): void {
         },
       });
     };
-    videoPlayer.appendChild(playerFrame);
+    videoPlayerDiv.appendChild(playerFrame);
   }
 }
 
-/**
- * Updates the user count
- * @param count The number of users
- */
-function userCountUpdate(count: number): void {
-  (document.getElementById('userCount') as HTMLSpanElement).textContent = count.toString();
-}
-
-youtubeLink.onkeyup = function(key): void {
-  if (youTubeRegexp.test(youtubeLink.value)) {
-    youtubeLink.classList.remove('lRed');
-    youtubeLink.classList.add('lGreen');
+youtubeLinkInput.onkeyup = function(key): void {
+  if (youTubeRegexp.test(youtubeLinkInput.value)) {
+    youtubeLinkInput.classList.remove('lRed');
+    youtubeLinkInput.classList.add('lGreen');
   } else {
-    if (youtubeLink.value.length > 0) {
-      youtubeLink.classList.remove('lGreen');
-      youtubeLink.classList.add('lRed');
+    if (youtubeLinkInput.value.length > 0) {
+      youtubeLinkInput.classList.remove('lGreen');
+      youtubeLinkInput.classList.add('lRed');
     } else {
-      youtubeLink.className = 'messageBox';
+      youtubeLinkInput.className = 'messageBox';
     }
   }
   if (key.keyCode === 13) {
-    if (youtubeLink.classList.contains('lGreen')) {
-      const videoID = youtubeLink.value.split(youTubeRegexp)[1];
+    if (youtubeLinkInput.classList.contains('lGreen')) {
+      const videoID = youtubeLinkInput.value.split(youTubeRegexp)[1];
       ws.send(JSON.stringify({
         'event': 'ytAddVideo',
         'videoID': videoID,
       }));
-      youtubeLink.value = '';
-      youtubeLink.classList.remove('lGreen');
+      youtubeLinkInput.value = '';
+      youtubeLinkInput.classList.remove('lGreen');
     } else {
       snackbar('Link-ul introdus nu este valid!', 2);
     }
@@ -347,8 +381,23 @@ function onPlayerReady(): void {
   console.log('YouTube Player Ready');
 }
 
+
 function onPlayerStateChange(event: YT.OnStateChangeEvent): void {
   console.log('Player status: ' + event.data);
+  if (!videoInit) {
+    if (event.data == -1) {
+      ws.send(JSON.stringify({
+        'event': 'ytStartVideo',
+      }));
+    }
+    if (event.data == 1) {
+      player.pauseVideo();
+      videoInit = true;
+      ws.send(JSON.stringify({
+        'event': 'ytStartVideoReady',
+      }));
+    }
+  }
 }
 
 function onPlayerError(event: YT.OnErrorEvent): void {

@@ -36,7 +36,7 @@ app.use(bodyParser.json({
   type: 'application/json',
 }));
 
-// WEBSOCKET -------------------------------------
+// WEBSOCKET -----------------------------------------------------------------------------------------------------------
 const wss = new WSServer({ path: '/ws', maxPayload: 200, noServer: true });
 
 let i = 1;
@@ -52,7 +52,9 @@ const colors = [
   'pink',
   'teal'
 ];
-let videoList: string[] = [];
+const videoList: string[] = [];
+let currentVideo = '';
+let readyCheck: string[] = [];
 
 wss.on('connection', (ws) => {
   // Socket custom properties ------------------------------------------------------------------------------------------
@@ -64,10 +66,10 @@ wss.on('connection', (ws) => {
     i++;
   }
   ws.color = colors[Math.floor(Math.random() * colors.length)];
-  // Announce room join and send user list -----------------------------------------------------------------------------
-  const userList = [ws.name];
-  const userColorList = [ws.color];
-  wss.clients.forEach((client) => {
+  // Announce room join and send info of the room ----------------------------------------------------------------------
+  const userList: string[] = [ws.name];
+  const userColorList: string[] = [ws.color];
+  for (const client of wss.clients) {
     if (client != ws) {
       userList.push(client.name);
       userColorList.push(client.color);
@@ -79,28 +81,27 @@ wss.on('connection', (ws) => {
         },
       }));
     }
-  });
-  ws.send(JSON.stringify({
+  }
+  wsSendMessage('currentUser', {
     event: 'join',
     userList: userList,
     userColorList: userColorList,
     videoList: videoList,
-  }));
+    currentVideo: currentVideo,
+  });
   // -------------------------------------------------------------------------------------------------------------------
   ws.on('message', (message) => {
     const data = JSON.parse(message.toString());
     if (data && data.event) {
       switch (data.event) {
         case 'userMessage':
-          wss.clients.forEach((client) => {
-            client.send(JSON.stringify({
-              event: 'userMessage',
-              user: {
-                name: ws.name,
-                color: ws.color,
-              },
-              message: data.message,
-            }));
+          wsSendMessage('all', {
+            event: 'userMessage',
+            user: {
+              name: ws.name,
+              color: ws.color,
+            },
+            message: data.message,
           });
           break;
         case 'ytAddVideo':
@@ -114,31 +115,29 @@ wss.on('connection', (ws) => {
               }, (res) => {
                 if (res.statusCode == 200) {
                   videoList.push(data.videoID);
-                  wss.clients.forEach((client) => {
-                    client.send(JSON.stringify({
-                      event: 'ytAddVideo',
-                      status: 'addVideo',
-                      videoID: data.videoID,
-                    }));
+                  wsSendMessage('all', {
+                    event: 'ytAddVideo',
+                    status: 'addVideo',
+                    videoID: data.videoID,
                   });
                 } else {
-                  ws.send(JSON.stringify({
+                  wsSendMessage('currentUser', {
                     event: 'ytAddVideo',
                     status: 'notAvailable',
-                  }));
+                  });
                 }
               }).on('error', (error) => {
                 console.log(error);
-                ws.send(JSON.stringify({
+                wsSendMessage('currentUser', {
                   event: 'ytAddVideo',
                   status: 'connectionError',
-                }));
+                });
               }).end();
             } else {
-              ws.send(JSON.stringify({
+              wsSendMessage('currentUser', {
                 event: 'ytAddVideo',
                 status: 'videoExists',
-              }));
+              });
             }
           }
           break;
@@ -147,13 +146,44 @@ wss.on('connection', (ws) => {
             for (let i = 0; i < videoList.length; i++) {
               if (videoList[i] == data.videoID) {
                 videoList.splice(i, 1);
+                if (currentVideo == data.videoID) {
+                  if (videoList.length > 0) {
+                    currentVideo = videoList[videoList.length - 1];
+                  } else {
+                    currentVideo = '';
+                  }
+                }
+                i = videoList.length;
               }
             }
-            wss.clients.forEach((client) => {
-              client.send(JSON.stringify({
-                event: 'ytRemoveVideo',
-                videoID: data.videoID,
-              }));
+            wsSendMessage('all', {
+              event: 'ytRemoveVideo',
+              videoID: data.videoID,
+            });
+          }
+          break;
+        case 'ytCueVideo':
+          if (data.videoID && videoList.includes(data.videoID)) {
+            currentVideo = data.videoID;
+            wsSendMessage('all', {
+              event: 'ytCueVideo',
+              videoID: data.videoID,
+            });
+          }
+          break;
+        case 'ytStartVideo':
+          if (currentVideo != '') {
+            wsSendMessage('allExceptCurrentUser', {
+              event: 'ytStartVideo',
+            });
+          }
+          break;
+        case 'ytStartVideoReady':
+          readyCheck.push(ws.name);
+          if (readyCheck.length == wss.clients.size) {
+            readyCheck = [];
+            wsSendMessage('all', {
+              event: 'ytPlayVideo',
             });
           }
           break;
@@ -167,16 +197,12 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     usedNumbers.push(ws.name.split('-')[1]);
-    wss.clients.forEach((client) => {
-      if (client != ws) {
-        client.send(JSON.stringify({
-          event: 'userDisconnect',
-          user: {
-            name: ws.name,
-            color: ws.color,
-          },
-        }));
-      }
+    wsSendMessage('allExceptCurrentUser', {
+      event: 'userDisconnect',
+      user: {
+        name: ws.name,
+        color: ws.color,
+      },
     });
     /*if (wss.clients.size == 0) {
       videoList = [];
@@ -186,6 +212,30 @@ wss.on('connection', (ws) => {
   ws.on('error', (err) => {
     console.log(err);
   });
+
+  /**
+   * Sends a message to the clients of the WebSocket
+   * @param to To whom to send the message
+   * @param message The message to send
+   */
+  function wsSendMessage(to: 'all' | 'allExceptCurrentUser' | 'currentUser', message: { [prop: string]: any }): void {
+    switch (to) {
+      case 'all':
+        for (const client of wss.clients) {
+          client.send(JSON.stringify(message));
+        }
+        break;
+      case 'allExceptCurrentUser':
+        for (const client of wss.clients) {
+          if (client != ws)
+            client.send(JSON.stringify(message));
+        }
+        break;
+      case 'currentUser':
+        ws.send(JSON.stringify(message));
+        break;
+    }
+  }
 });
 
 server.on('upgrade', function(req, socket, head) {
@@ -208,7 +258,7 @@ setInterval(function ping() {
     ws.ping(null);
   });
 }, 25000);
-// -------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 
 const client = new Redis({ enableOfflineQueue: false });
 
