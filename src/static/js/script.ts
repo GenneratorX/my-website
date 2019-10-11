@@ -2,26 +2,15 @@
 /** @preserve script.js */
 'use strict';
 
-const link = document.createElement('link');
-link.rel = 'stylesheet';
-link.href = '/css/style.css';
-document.head.appendChild(link);
+window.addEventListener('load', function() {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = '/css/style.css';
+  document.head.appendChild(link);
+});
 
-if (document.readyState !== 'loading') {
-  selectButton();
-} else {
-  document.addEventListener('DOMContentLoaded', function() {
-    selectButton();
-  });
-}
-
-/**
- * Gives a ribbon button the 'selected' look based on the current path
- */
-function selectButton(): void {
-  const b = window.location.pathname.substring(1);
-  if (document.getElementById(b)) (document.getElementById(b) as HTMLAnchorElement).className += ' selected';
-}
+const b = window.location.pathname.substring(1);
+if (document.getElementById(b)) (document.getElementById(b) as HTMLAnchorElement).className += ' selected';
 
 const hamburger = document.getElementById('hamburger') as HTMLAnchorElement;
 if (hamburger) {

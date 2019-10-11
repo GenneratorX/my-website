@@ -23,6 +23,15 @@ const server = app.listen(env.PORT, () => console.log(`Aplicatia ruleaza pe port
 app.engine('handlebars', exhb({
   layoutsDir: 'app/views/layouts',
   partialsDir: 'app/views/partials',
+  helpers: {
+    section: function(name: string, options: any): null {
+      if (!this._sections) {
+        this._sections = {};
+      }
+      this._sections[name] = options.fn(this);
+      return null;
+    },
+  },
 }));
 
 app.set('view engine', 'handlebars');
@@ -91,18 +100,25 @@ wss.on('connection', (ws) => {
   });
   // -------------------------------------------------------------------------------------------------------------------
   ws.on('message', (message) => {
-    const data = JSON.parse(message.toString());
-    if (data && data.event) {
+    let data: { [prop: string]: string };
+    try {
+      data = JSON.parse(message.toString());
+    } catch (e) {
+      data = { validJSON: 'no' };
+    }
+    if (!data.validJSON && data.event) {
       switch (data.event) {
         case 'userMessage':
-          wsSendMessage('all', {
-            event: 'userMessage',
-            user: {
-              name: ws.name,
-              color: ws.color,
-            },
-            message: data.message,
-          });
+          if (data.message) {
+            wsSendMessage('all', {
+              event: 'userMessage',
+              user: {
+                name: ws.name,
+                color: ws.color,
+              },
+              message: data.message,
+            });
+          }
           break;
         case 'ytAddVideo':
           if (data.videoID && /^[a-zA-Z0-9_-]{11}$/.test(data.videoID)) {

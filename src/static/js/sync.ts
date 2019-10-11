@@ -1,6 +1,11 @@
 /** @preserve sync.js */
 'use strict';
 
+const syncCSS = document.createElement('link');
+syncCSS.rel = 'stylesheet';
+syncCSS.href = '/css/sync.css';
+document.head.appendChild(syncCSS);
+
 const videoPlayerDiv = document.getElementById('video-player') as HTMLDivElement;
 const videoListDiv = document.getElementById('videoList') as HTMLDivElement;
 const youtubeLinkInput = document.getElementById('youtubeLink') as HTMLInputElement;
