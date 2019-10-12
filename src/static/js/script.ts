@@ -2,12 +2,18 @@
 /** @preserve script.js */
 'use strict';
 
-window.addEventListener('load', function() {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = '/css/style.css';
-  document.head.appendChild(link);
-});
+/**
+ * Load any preloaded CSS asynchronously and with the main CSS always last
+ */
+const links = document.head.getElementsByTagName('link');
+for (let i = links.length - 1; i >= 0; i--) {
+  if (links[i].as == 'style') {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = links[i].getAttribute('href') as string;
+    document.head.appendChild(link);
+  }
+}
 
 const b = window.location.pathname.substring(1);
 if (document.getElementById(b)) (document.getElementById(b) as HTMLAnchorElement).className += ' selected';
