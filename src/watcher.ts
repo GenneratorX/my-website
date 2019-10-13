@@ -17,7 +17,7 @@ const pathSrcJs = 'src/static/js/';
 const compressibleFileTypes = /.*\.(css|js|html|svg|xml|webmanifest|json)$/;
 
 const watcher = chokidar.watch(['./src', './app'], {
-  ignored: /.*\.(br|gz)$/,
+  ignored: [/.*\.(br|gz)$/, './src/interfaces'],
   persistent: true,
   depth: 3,
   awaitWriteFinish: {
@@ -194,14 +194,16 @@ function jsMin(code: string): void {
      *  - even indexes are the 'compiled' code
      *  - last item is an empty string
      */
-    const splitBuffer = output.toString().replace(/\n/g, '').split(/window\.fileName="(.*?)";/);
-    if (splitBuffer) {
-      /**
-       * First file always starts with the 'use strict'; statement so it needs to be handled separately.
-       */
-      fs.writeFile(`app/static/js/${splitBuffer[1]}`, splitBuffer[0]);
-      for (let i = 2; i < splitBuffer.length - 1; i += 2) {
-        fs.writeFile(`app/static/js/${splitBuffer[i + 1]}`, '\'use strict\';' + splitBuffer[i]);
+    if (output !== undefined) {
+      const splitBuffer = output.toString().replace(/\n/g, '').split(/window\.fileName="(.*?)";/);
+      if (splitBuffer) {
+        /**
+         * First file always starts with the 'use strict'; statement so it needs to be handled separately.
+         */
+        fs.writeFile(`app/static/js/${splitBuffer[1]}`, splitBuffer[0]);
+        for (let i = 2; i < splitBuffer.length - 1; i += 2) {
+          fs.writeFile(`app/static/js/${splitBuffer[i + 1]}`, '\'use strict\';' + splitBuffer[i]);
+        }
       }
     }
   });
