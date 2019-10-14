@@ -1,31 +1,173 @@
-/** @preserve sync.js */
 'use strict';
-
-const syncCSS = document.createElement('link');
-syncCSS.rel = 'stylesheet';
-syncCSS.href = '/css/sync.css';
-document.head.appendChild(syncCSS);
 
 const videoPlayerDiv = document.getElementById('video-player') as HTMLDivElement;
 const videoListDiv = document.getElementById('videoList') as HTMLDivElement;
 const youtubeLinkInput = document.getElementById('youtubeLink') as HTMLInputElement;
 const userListDiv = document.getElementById('chatUsers') as HTMLDivElement;
+const userCountSpan = document.getElementById('userCount') as HTMLSpanElement;
 const chatDiv = document.getElementById('chat-box') as HTMLDivElement;
 const messageBoxInput = document.getElementById('messageBox') as HTMLInputElement;
 
-let initial = false;
+class SyncRoom {
+
+  private userList: [{ name: string; color: string }];
+  private videoList: string[];
+  private currentVideo: string;
+  private master: boolean;
+
+  constructor(userlist: [{ name: string; color: string }], videolist: string[], currentvideo: string) {
+    if (player) {
+      player.destroy();
+    }
+    /**
+     * Initialize the user list
+     */
+    while (userListDiv.firstChild) {
+      userListDiv.removeChild(userListDiv.firstChild);
+    }
+    this.userList = userlist;
+    const userListLength = this.userList.length;
+    userCountSpan.textContent = userListLength.toString();
+    for (let i = 0; i < userListLength; i++) {
+      userListAdd(this.userList[i]['name'], this.userList[i]['color']);
+    }
+    /**
+     * Initialize the video list
+     */
+    while (videoListDiv.firstChild) {
+      videoListDiv.removeChild(videoListDiv.firstChild);
+    }
+    this.videoList = videolist;
+    for (let i = 0; i < this.videoList.length; i++) {
+      videoListAdd(videolist[i]);
+    }
+    /**
+     * Initialize the current video
+     */
+    this.currentVideo = currentvideo;
+    if (this.currentVideo != '') {
+      cueVideo(this.currentVideo);
+    }
+    this.master = false;
+  }
+
+  /**
+   * Adds a user to the user list
+   * @param user The user
+   */
+  addUser(user: { name: string; color: string }): void {
+    displayMessage(user['name'], user['color'], 'status', 's-a conectat!');
+    this.userList.push(user);
+    userCountSpan.textContent = this.userList.length.toString();
+    userListAdd(user['name'], user['color']);
+  }
+
+  /**
+   * Removes a user from the user list
+   * @param username The username
+   */
+  removeUser(username: string): void {
+    for (let i = 0; i < this.userList.length; i++) {
+      if (this.userList[i]['name'] == username) {
+        displayMessage(username, this.userList[i]['color'], 'status', 's-a deconectat!');
+        this.userList.splice(i, 1);
+        i = this.userList.length;
+      }
+    }
+    userCountSpan.textContent = this.userList.length.toString();
+    userListRemove(username);
+  }
+
+  /**
+   * Returns the color of the specified username
+   * @param username The username
+   */
+  getUserColorByName(username: string): string {
+    for (let i = 0; i < this.userList.length; i++) {
+      if (this.userList[i]['name'] == username) {
+        return this.userList[i]['color'];
+      }
+    }
+    return '';
+  }
+
+  /**
+   * Adds a video to the video list
+   * @param videoID The video ID of the video
+   */
+  addVideo(videoID: string): void {
+    this.videoList.push(videoID);
+    if (this.videoList.length == 1) {
+      this.setCurrentVideo(videoID);
+    }
+    videoListAdd(videoID);
+  }
+
+  /**
+   * Removes a video from the video list
+   * @param videoID The video ID of the video
+   */
+  removeVideo(videoID: string): void {
+    for (let i = 0; i < this.videoList.length; i++) {
+      if (this.videoList[i] == videoID) {
+        if (this.videoList[i] == this.currentVideo) {
+          this.setCurrentVideo('');
+        }
+        this.videoList.splice(i, 1);
+        videoListDiv.removeChild(document.getElementById(videoID) as HTMLDivElement);
+        i = this.videoList.length;
+      }
+    }
+  }
+
+  /**
+   * Sets the current video to play
+   * @param videoID The video ID of the video
+   */
+  setCurrentVideo(videoID: string): void {
+    this.currentVideo = videoID;
+    if (this.currentVideo != '') {
+      cueVideo(this.currentVideo);
+    } else {
+      player.destroy();
+    }
+  }
+
+  /**
+   * Sets the current user as the room master
+   */
+  setRoomMaster(): void {
+    this.master = true;
+  }
+
+  /**
+   * Returns whether the current user is the room master
+   */
+  get isMaster(): boolean {
+    return this.master;
+  }
+
+  /**
+   * Returns the connected user count
+   */
+  get userCount(): number {
+    return this.userList.length;
+  }
+}
 
 const youTubeRegexp = new RegExp(
   '^(?:https?:\\/\\/)?(?:m\\.|www\\.)?(?:youtu\\.be\\/|youtube\\.com\\/(?:embed\\/|v\\/|watch\\?v=|watch\\?.+&v=))' +
   '((\\w|-){11})([\\?\\&]\\S*)?$');
 
-let userCount = 0;
+let initial = false;
+
 let retryCounter = 0;
 const maxRetries = 5;
 
 let videoInit = false;
 
 let ws: WebSocket;
+let room: SyncRoom;
 let player: YT.Player;
 
 /**
@@ -41,22 +183,6 @@ function connect(): void {
     } else {
       initial = true;
     }
-
-    // Clear the user list
-    while (userListDiv.firstChild) {
-      userListDiv.removeChild(userListDiv.firstChild);
-    }
-
-    // Clear the video list
-    while (videoListDiv.firstChild) {
-      videoListDiv.removeChild(videoListDiv.firstChild);
-    }
-
-    // Remove the player iframe if exists
-    if (player) {
-      player.destroy();
-    }
-
     interval = setInterval(function() {
       if (ws.readyState > 1 && retryCounter < maxRetries) {
         connect();
@@ -117,38 +243,24 @@ function handleMessage(message: string): void {
   const data = JSON.parse(message);
   switch (data['event']) {
     case 'join':
-      userCount = data['userList'].length;
-      for (let i = 0; i < userCount; i++) {
-        userListAdd(data['userList'][i], data['userColorList'][i]);
-      }
-      userCountUpdate(userCount);
-      for (let i = 0; i < data['videoList'].length; i++) {
-        videoListAdd(data['videoList'][i]);
-      }
-      if (data['currentVideo'] != '') {
-        cueVideo(data['currentVideo']);
-      }
+      room = new SyncRoom(data['userList'], data['videoList'], data['currentVideo']);
+      break;
+    case 'roomMaster':
+      room.setRoomMaster();
       break;
     case 'userConnect':
-      displayMessage(data['user'].name, data['user'].color, 'status', 's-a conectat!');
-      userListAdd(data['user'].name, data['user'].color);
-      userCountUpdate(++userCount);
+      room.addUser(data['user']);
       break;
     case 'userDisconnect':
-      displayMessage(data['user'].name, data['user'].color, 'status', 's-a deconectat!');
-      userListRemove(data['user'].name);
-      userCountUpdate(--userCount);
+      room.removeUser(data['username']);
       break;
     case 'userMessage':
-      displayMessage(data['user'].name, data['user'].color, 'message', data['message']);
+      displayMessage(data['username'], room.getUserColorByName(data['username']), 'message', data['message']);
       break;
     case 'ytAddVideo':
       switch (data['status']) {
         case 'addVideo':
-          videoListAdd(data['videoID']);
-          if (document.getElementsByTagName('iframe').length == 0) {
-            sendToQueue(data['videoID']);
-          }
+          room.addVideo(data['videoID']);
           break;
         case 'notAvailable':
           snackbar('Videoclipul introdus nu există!', 2);
@@ -160,13 +272,10 @@ function handleMessage(message: string): void {
       }
       break;
     case 'ytRemoveVideo':
-      videoListRemove(data['videoID']);
-      if (player.getVideoUrl().substr(-11) == data['videoID']) {
-        player.destroy();
-      }
+      room.removeVideo(data['videoID']);
       break;
     case 'ytCueVideo':
-      cueVideo(data['videoID']);
+      room.setCurrentVideo(data['videoID']);
       break;
     case 'ytStartVideo':
       player.playVideo();
@@ -176,15 +285,6 @@ function handleMessage(message: string): void {
       break;
   }
 }
-
-/**
- * Updates the user count
- * @param count The number of users
- */
-function userCountUpdate(count: number): void {
-  (document.getElementById('userCount') as HTMLSpanElement).textContent = count.toString();
-}
-
 
 /**
  * Displays a message in the chat
@@ -314,14 +414,6 @@ function sendToQueue(videoID: string): void {
 }
 
 /**
- * Removes a video from the playlist
- * @param videoID Video ID to remove from the playlist
- */
-function videoListRemove(videoID: string): void {
-  videoListDiv.removeChild(document.getElementById(videoID) as HTMLDivElement);
-}
-
-/**
  * Displays the video in the player iframe
  * @param videoID Video ID of the video
  */
@@ -390,11 +482,11 @@ function onPlayerReady(): void {
 function onPlayerStateChange(event: YT.OnStateChangeEvent): void {
   console.log('Player status: ' + event.data);
   if (!videoInit) {
-    if (event.data == -1) {
+    /*if (event.data == -1 && roomMaster) {
       ws.send(JSON.stringify({
         'event': 'ytStartVideo',
       }));
-    }
+    }*/
     if (event.data == 1) {
       player.pauseVideo();
       videoInit = true;

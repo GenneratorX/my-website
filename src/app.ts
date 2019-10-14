@@ -61,6 +61,9 @@ const colors = [
   'pink',
   'teal'
 ];
+
+let roomMaster = '';
+
 const videoList: string[] = [];
 let currentVideo = '';
 let readyCheck: string[] = [];
@@ -76,12 +79,10 @@ wss.on('connection', (ws) => {
   }
   ws.color = colors[Math.floor(Math.random() * colors.length)];
   // Announce room join and send info of the room ----------------------------------------------------------------------
-  const userList: string[] = [ws.name];
-  const userColorList: string[] = [ws.color];
+  const userList: [{ name: string; color: string }] = [{ name: ws.name; color: ws.color }];
   for (const client of wss.clients) {
     if (client != ws) {
-      userList.push(client.name);
-      userColorList.push(client.color);
+      userList.push({ name: client.name; color: client.color });
       client.send(JSON.stringify({
         event: 'userConnect',
         user: {
@@ -94,10 +95,16 @@ wss.on('connection', (ws) => {
   wsSendMessage('currentUser', {
     event: 'join',
     userList: userList,
-    userColorList: userColorList,
     videoList: videoList,
     currentVideo: currentVideo,
   });
+
+  if (wss.clients.size == 1) {
+    roomMaster = ws.name;
+    wsSendMessage('currentUser', {
+      event: 'roomMaster',
+    });
+  }
   // -------------------------------------------------------------------------------------------------------------------
   ws.on('message', (message) => {
     let data: { [prop: string]: string };
@@ -112,10 +119,7 @@ wss.on('connection', (ws) => {
           if (data.message) {
             wsSendMessage('all', {
               event: 'userMessage',
-              user: {
-                name: ws.name,
-                color: ws.color,
-              },
+              username: ws.name,
               message: data.message,
             });
           }
@@ -131,6 +135,9 @@ wss.on('connection', (ws) => {
               }, (res) => {
                 if (res.statusCode == 200) {
                   videoList.push(data.videoID);
+                  if (videoList.length == 1) {
+                    currentVideo = data.videoID;
+                  }
                   wsSendMessage('all', {
                     event: 'ytAddVideo',
                     status: 'addVideo',
@@ -163,11 +170,7 @@ wss.on('connection', (ws) => {
               if (videoList[i] == data.videoID) {
                 videoList.splice(i, 1);
                 if (currentVideo == data.videoID) {
-                  if (videoList.length > 0) {
-                    currentVideo = videoList[videoList.length - 1];
-                  } else {
-                    currentVideo = '';
-                  }
+                  currentVideo = '';
                 }
                 i = videoList.length;
               }
@@ -215,14 +218,16 @@ wss.on('connection', (ws) => {
     usedNumbers.push(ws.name.split('-')[1]);
     wsSendMessage('allExceptCurrentUser', {
       event: 'userDisconnect',
-      user: {
-        name: ws.name,
-        color: ws.color,
-      },
+      username: ws.name,
     });
-    /*if (wss.clients.size == 0) {
-      videoList = [];
-    }*/
+    if (wss.clients.size > 0) {
+      if (ws.name == roomMaster) {
+        // select random client to be room master
+      }
+    } else {
+      roomMaster = '';
+      // videoList = [];
+    }
   });
 
   ws.on('error', (err) => {
