@@ -1,4 +1,3 @@
-/** @preserve login.js */
 'use strict';
 
 const submitForm = document.getElementById('auth') as HTMLFormElement;

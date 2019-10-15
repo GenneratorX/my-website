@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/** @preserve script.js */
 'use strict';
 
 /**

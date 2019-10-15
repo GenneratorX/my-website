@@ -79,10 +79,10 @@ wss.on('connection', (ws) => {
   }
   ws.color = colors[Math.floor(Math.random() * colors.length)];
   // Announce room join and send info of the room ----------------------------------------------------------------------
-  const userList: [{ name: string; color: string }] = [{ name: ws.name; color: ws.color }];
+  const userList: [{ name: string; color: string }] = [{ name: ws.name, color: ws.color }];
   for (const client of wss.clients) {
     if (client != ws) {
-      userList.push({ name: client.name; color: client.color });
+      userList.push({ name: client.name, color: client.color });
       client.send(JSON.stringify({
         event: 'userConnect',
         user: {
@@ -271,14 +271,14 @@ server.on('upgrade', function(req, socket, head) {
 });
 
 setInterval(function ping() {
-  wss.clients.forEach(function each(ws) {
-    if (ws.isAlive === false) {
-      return ws.terminate();
+  for (const client of wss.clients) {
+    if (client.isAlive === false) {
+      return client.terminate();
     }
-    ws.isAlive = false;
-    ws.ping(null);
-  });
-}, 25000);
+    client.isAlive = false;
+    client.ping(null);
+  }
+}, 30000);
 // ---------------------------------------------------------------------------------------------------------------------
 
 const client = new Redis({ enableOfflineQueue: false });
@@ -494,20 +494,16 @@ app.post('/loginUser', rateLimiter, function(req, res) {
 });
 
 app.post('/createUser', rateLimiter, function(req, res) {
-  if (req.body.username && req.body.password && req.body.email && req.body.policy) {
-    if (req.body.policy == true) {
-      auth
-        .createUser(req.body.username, req.body.password, req.body.email)
-        .then((f) => {
-          res.json({ response: f });
-        })
-        .catch((r) => {
-          console.log(r);
-          res.status(500).json({ response: 'INTERNAL_ERROR' });
-        });
-    } else {
-      res.status(400).json({ response: `Cererea nu este corectă! Ieși acas'!` });
-    }
+  if (req.body.username && req.body.password && req.body.email && req.body.policy && req.body.policy === true) {
+    auth
+      .createUser(req.body.username, req.body.password, req.body.email)
+      .then((f) => {
+        res.json({ response: f });
+      })
+      .catch((r) => {
+        console.log(r);
+        res.status(500).json({ response: 'INTERNAL_ERROR' });
+      });
   } else {
     res.status(400).json({ response: `Cererea nu este corectă! Ieși acas'!` });
   }
