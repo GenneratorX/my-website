@@ -7,10 +7,8 @@ import session = require('express-session');
 import Redis = require('ioredis');
 const RedisStore = require('connect-redis')(session); // eslint-disable-line @typescript-eslint/no-var-requires
 import { RateLimiterRedis } from 'rate-limiter-flexible';
-import { Server as WSServer } from 'ws';
 
 import crypto = require('crypto');
-import https = require('https');
 
 import * as env from './env';
 import * as auth from './modules/auth';
@@ -18,7 +16,10 @@ import * as db from './modules/db';
 import * as util from './modules/util';
 
 const app = express();
-const server = app.listen(env.PORT, () => console.log(`Aplicatia ruleaza pe portul ${env.PORT}!`));
+export const server = app.listen(env.PORT, () => console.log(`Aplicatia ruleaza pe portul ${env.PORT}!`));
+
+// WEBSOCKET SERVER
+import './modules/websocket';
 
 app.engine('handlebars', exhb({
   layoutsDir: 'app/views/layouts',
@@ -44,242 +45,6 @@ app.use(bodyParser.json({
   strict: true,
   type: 'application/json',
 }));
-
-// WEBSOCKET -----------------------------------------------------------------------------------------------------------
-const wss = new WSServer({ path: '/ws', maxPayload: 200, noServer: true });
-
-let i = 1;
-const usedNumbers: string[] = [];
-const colors = [
-  'red',
-  'green',
-  'blue',
-  'orange',
-  'purple',
-  'yellow',
-  'brown',
-  'pink',
-  'teal'
-];
-
-let roomMaster = '';
-
-const videoList: string[] = [];
-let currentVideo = '';
-let readyCheck: string[] = [];
-
-wss.on('connection', (ws) => {
-  // Socket custom properties ------------------------------------------------------------------------------------------
-  ws.isAlive = true;
-  if (usedNumbers.length != 0) {
-    ws.name = 'Anonim-' + usedNumbers.shift();
-  } else {
-    ws.name = 'Anonim-' + i;
-    i++;
-  }
-  ws.color = colors[Math.floor(Math.random() * colors.length)];
-  // Announce room join and send info of the room ----------------------------------------------------------------------
-  const userList: [{ name: string; color: string }] = [{ name: ws.name, color: ws.color }];
-  for (const client of wss.clients) {
-    if (client != ws) {
-      userList.push({ name: client.name, color: client.color });
-      client.send(JSON.stringify({
-        event: 'userConnect',
-        user: {
-          name: ws.name,
-          color: ws.color,
-        },
-      }));
-    }
-  }
-  wsSendMessage('currentUser', {
-    event: 'join',
-    userList: userList,
-    videoList: videoList,
-    currentVideo: currentVideo,
-  });
-
-  if (wss.clients.size == 1) {
-    roomMaster = ws.name;
-    wsSendMessage('currentUser', {
-      event: 'roomMaster',
-    });
-  }
-  // -------------------------------------------------------------------------------------------------------------------
-  ws.on('message', (message) => {
-    let data: { [prop: string]: string };
-    try {
-      data = JSON.parse(message.toString());
-    } catch (e) {
-      data = { validJSON: 'no' };
-    }
-    if (!data.validJSON && data.event) {
-      switch (data.event) {
-        case 'userMessage':
-          if (data.message) {
-            wsSendMessage('all', {
-              event: 'userMessage',
-              username: ws.name,
-              message: data.message,
-            });
-          }
-          break;
-        case 'ytAddVideo':
-          if (data.videoID && /^[a-zA-Z0-9_-]{11}$/.test(data.videoID)) {
-            if (!videoList.includes(data.videoID)) {
-              https.request({
-                hostname: 'i.ytimg.com',
-                port: 443,
-                path: `/vi/${data.videoID}/default.jpg`,
-                method: 'HEAD',
-              }, (res) => {
-                if (res.statusCode == 200) {
-                  videoList.push(data.videoID);
-                  if (videoList.length == 1) {
-                    currentVideo = data.videoID;
-                  }
-                  wsSendMessage('all', {
-                    event: 'ytAddVideo',
-                    status: 'addVideo',
-                    videoID: data.videoID,
-                  });
-                } else {
-                  wsSendMessage('currentUser', {
-                    event: 'ytAddVideo',
-                    status: 'notAvailable',
-                  });
-                }
-              }).on('error', (error) => {
-                console.log(error);
-                wsSendMessage('currentUser', {
-                  event: 'ytAddVideo',
-                  status: 'connectionError',
-                });
-              }).end();
-            } else {
-              wsSendMessage('currentUser', {
-                event: 'ytAddVideo',
-                status: 'videoExists',
-              });
-            }
-          }
-          break;
-        case 'ytRemoveVideo':
-          if (data.videoID && videoList.includes(data.videoID)) {
-            for (let i = 0; i < videoList.length; i++) {
-              if (videoList[i] == data.videoID) {
-                videoList.splice(i, 1);
-                if (currentVideo == data.videoID) {
-                  currentVideo = '';
-                }
-                i = videoList.length;
-              }
-            }
-            wsSendMessage('all', {
-              event: 'ytRemoveVideo',
-              videoID: data.videoID,
-            });
-          }
-          break;
-        case 'ytCueVideo':
-          if (data.videoID && videoList.includes(data.videoID)) {
-            currentVideo = data.videoID;
-            wsSendMessage('all', {
-              event: 'ytCueVideo',
-              videoID: data.videoID,
-            });
-          }
-          break;
-        case 'ytStartVideo':
-          if (currentVideo != '') {
-            wsSendMessage('allExceptCurrentUser', {
-              event: 'ytStartVideo',
-            });
-          }
-          break;
-        case 'ytStartVideoReady':
-          readyCheck.push(ws.name);
-          if (readyCheck.length == wss.clients.size) {
-            readyCheck = [];
-            wsSendMessage('all', {
-              event: 'ytPlayVideo',
-            });
-          }
-          break;
-      }
-    }
-  });
-
-  ws.on('pong', () => {
-    ws.isAlive = true;
-  });
-
-  ws.on('close', () => {
-    usedNumbers.push(ws.name.split('-')[1]);
-    wsSendMessage('allExceptCurrentUser', {
-      event: 'userDisconnect',
-      username: ws.name,
-    });
-    if (wss.clients.size > 0) {
-      if (ws.name == roomMaster) {
-        // select random client to be room master
-      }
-    } else {
-      roomMaster = '';
-      // videoList = [];
-    }
-  });
-
-  ws.on('error', (err) => {
-    console.log(err);
-  });
-
-  /**
-   * Sends a message to the clients of the WebSocket
-   * @param to To whom to send the message
-   * @param message The message to send
-   */
-  function wsSendMessage(to: 'all' | 'allExceptCurrentUser' | 'currentUser', message: { [prop: string]: any }): void {
-    switch (to) {
-      case 'all':
-        for (const client of wss.clients) {
-          client.send(JSON.stringify(message));
-        }
-        break;
-      case 'allExceptCurrentUser':
-        for (const client of wss.clients) {
-          if (client != ws)
-            client.send(JSON.stringify(message));
-        }
-        break;
-      case 'currentUser':
-        ws.send(JSON.stringify(message));
-        break;
-    }
-  }
-});
-
-server.on('upgrade', function(req, socket, head) {
-  if (req.headers.origin && req.headers.origin === 'https://gennerator.com') {
-    wss.handleUpgrade(req, socket, head, function(ws) {
-      wss.emit('connection', ws, req);
-    });
-  } else {
-    socket.destroy();
-    return;
-  }
-});
-
-setInterval(function ping() {
-  for (const client of wss.clients) {
-    if (client.isAlive === false) {
-      return client.terminate();
-    }
-    client.isAlive = false;
-    client.ping(null);
-  }
-}, 30000);
-// ---------------------------------------------------------------------------------------------------------------------
 
 const client = new Redis({ enableOfflineQueue: false });
 
