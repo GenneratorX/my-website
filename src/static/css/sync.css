@@ -125,10 +125,14 @@
   font-size: 1rem;
   font-weight: 700;
   height: 100%;
-  outline: 0;
   padding: 0.1rem 0.5rem 0.1rem 1rem;
   resize: none;
   width: 100%;
+}
+
+.messageBox:focus {
+  box-shadow: 0 0 5px #363636;
+  outline: 0;
 }
 
 .message {

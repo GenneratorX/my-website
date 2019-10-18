@@ -125,7 +125,7 @@ class WsRoom {
           username: username,
         }, 'allExceptSpecificUser', ws);
 
-        this.usedNumbers.push(parseInt(username.split('-')[1]));
+        this.usedNumbers.push(parseInt(username.split('-')[1], 10));
 
         this.userList.splice(i, 1);
         i = this.userList.length;
@@ -414,7 +414,7 @@ wss.on('connection', (ws: MyWS) => {
 });
 
 server.on('upgrade', function(req, socket, head) {
-  if (req.headers.origin && req.headers.origin === 'https://gennerator.com') {
+  if (req.headers.origin !== undefined && req.headers.origin === 'https://gennerator.com') {
     wss.handleUpgrade(req, socket, head, function(ws) {
       wss.emit('connection', ws, req);
     });

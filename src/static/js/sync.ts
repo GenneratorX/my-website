@@ -45,7 +45,7 @@ class SyncRoom {
      * Initialize the current video
      */
     this.currentVideo = currentvideo;
-    if (this.currentVideo != '') {
+    if (this.currentVideo !== '') {
       cueVideo(this.currentVideo);
     }
     this.master = false;
@@ -68,7 +68,7 @@ class SyncRoom {
    */
   removeUser(username: string): void {
     for (let i = 0; i < this.userList.length; i++) {
-      if (this.userList[i]['name'] == username) {
+      if (this.userList[i]['name'] === username) {
         displayMessage(username, this.userList[i]['color'], 'status', 's-a deconectat!');
         this.userList.splice(i, 1);
         i = this.userList.length;
@@ -84,7 +84,7 @@ class SyncRoom {
    */
   getUserColorByName(username: string): string {
     for (let i = 0; i < this.userList.length; i++) {
-      if (this.userList[i]['name'] == username) {
+      if (this.userList[i]['name'] === username) {
         return this.userList[i]['color'];
       }
     }
@@ -97,7 +97,7 @@ class SyncRoom {
    */
   addVideo(videoID: string): void {
     this.videoList.push(videoID);
-    if (this.videoList.length == 1) {
+    if (this.videoList.length === 1) {
       this.setCurrentVideo(videoID);
     }
     videoListAdd(videoID);
@@ -109,8 +109,8 @@ class SyncRoom {
    */
   removeVideo(videoID: string): void {
     for (let i = 0; i < this.videoList.length; i++) {
-      if (this.videoList[i] == videoID) {
-        if (this.videoList[i] == this.currentVideo) {
+      if (this.videoList[i] === videoID) {
+        if (this.videoList[i] === this.currentVideo) {
           this.setCurrentVideo('');
         }
         this.videoList.splice(i, 1);
@@ -126,7 +126,7 @@ class SyncRoom {
    */
   setCurrentVideo(videoID: string): void {
     this.currentVideo = videoID;
-    if (this.currentVideo != '') {
+    if (this.currentVideo !== '') {
       cueVideo(this.currentVideo);
     } else {
       player.destroy();
@@ -188,7 +188,7 @@ function connect(): void {
         connect();
         retryCounter++;
       }
-    }, 30000);
+    }, 35000);
     retryCounter = 0;
   };
 
@@ -208,14 +208,14 @@ function connect(): void {
   };
 }
 
-messageBoxInput.onkeydown = function(key): void {
-  if (key.keyCode === 13) {
-    key.preventDefault();
+messageBoxInput.onkeydown = function(e): void {
+  if (e.key === 'Enter') {
+    e.preventDefault();
   }
 };
 
-messageBoxInput.onkeyup = function(key): void {
-  if (key.keyCode === 13) {
+messageBoxInput.onkeyup = function(e): void {
+  if (e.key === 'Enter') {
     const msg = messageBoxInput.value.replace(/\s+/g, ' ').trim();
     if (msg.length > 0) {
       ws.send(JSON.stringify({
@@ -262,7 +262,7 @@ function handleMessage(message: string): void {
         case 'addVideo':
           room.addVideo(data['videoID']);
           break;
-        case 'notAvailable':
+        case 'videoNotAvailable':
           snackbar('Videoclipul introdus nu există!', 2);
           break;
         case 'videoExists':
@@ -329,7 +329,7 @@ function userListAdd(username: string, usernameColor: string): void {
  */
 function userListRemove(username: string): void {
   for (let i = 0; i < userListDiv.childNodes.length; i++) {
-    if (userListDiv.childNodes[i].textContent == username) {
+    if (userListDiv.childNodes[i].textContent === username) {
       userListDiv.removeChild(userListDiv.childNodes[i]);
     }
   }
@@ -418,7 +418,7 @@ function sendToQueue(videoID: string): void {
  * @param videoID Video ID of the video
  */
 function cueVideo(videoID: string): void {
-  if (document.getElementsByTagName('iframe').length == 1) {
+  if (document.getElementsByTagName('iframe').length === 1) {
     player.cueVideoById({
       'videoId': videoID,
       'startSeconds': 0,
@@ -447,7 +447,7 @@ function cueVideo(videoID: string): void {
   }
 }
 
-youtubeLinkInput.onkeyup = function(key): void {
+youtubeLinkInput.onkeyup = function(e): void {
   if (youTubeRegexp.test(youtubeLinkInput.value)) {
     youtubeLinkInput.classList.remove('lRed');
     youtubeLinkInput.classList.add('lGreen');
@@ -459,7 +459,7 @@ youtubeLinkInput.onkeyup = function(key): void {
       youtubeLinkInput.className = 'messageBox';
     }
   }
-  if (key.keyCode === 13) {
+  if (e.key === 'Enter') {
     if (youtubeLinkInput.classList.contains('lGreen')) {
       const videoID = youtubeLinkInput.value.split(youTubeRegexp)[1];
       ws.send(JSON.stringify({
@@ -487,7 +487,7 @@ function onPlayerStateChange(event: YT.OnStateChangeEvent): void {
         'event': 'ytStartVideo',
       }));
     }*/
-    if (event.data == 1) {
+    if (event.data === 1) {
       player.pauseVideo();
       videoInit = true;
       ws.send(JSON.stringify({

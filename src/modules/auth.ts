@@ -10,6 +10,10 @@ import * as env from '../env';
 import * as db from './db';
 import * as util from './util';
 
+const MIN_USERNAME_LENGTH = 6;
+const MAX_USERNAME_LENGTH = 40;
+const MIN_PASSWORD_LENGTH = 8;
+
 const userRegexp = /^[a-zA-Z\d][a-zA-Z\d!?$^&*._-]{5,39}$/;
 const emailRegexp = new RegExp(
   '^(?=.{1,254}$)(?=.{1,64}@)[-!#$%&\'*+/0-9=?A-Z^_`a-z{|}~]+(\\.[-!#$%&\'*+/0-9=?A-Z^_`a-z{|}~]+)*@[A-Za-z0-9]' +
@@ -100,10 +104,10 @@ export async function createUser(
  * @return True if the login was successful, error string otherwise
  */
 export async function loginUser(usr: string, pass: string): Promise<boolean | string> {
-  if (usr.length >= 6 && usr.length <= 40 && pass.length >= 8 && pass.length <= 100) {
+  if (usr.length >= MIN_USERNAME_LENGTH && usr.length <= MAX_USERNAME_LENGTH && pass.length >= MIN_PASSWORD_LENGTH) {
     const u = await db.query('SELECT password, active FROM users WHERE LOWER(username) = LOWER($1);', [usr]);
     if (u && u[0]) {
-      if (u[0][1] == true) {
+      if (u[0][1] === true) {
         if (await argon2.verify(u[0][0], pass)) {
           db.query('UPDATE users SET lastlogin = CURRENT_TIMESTAMP WHERE LOWER(username) = LOWER($1)', [usr]);
           return true;
@@ -142,7 +146,7 @@ export async function enableUser(activationKey: string): Promise<boolean> {
  */
 export async function usernameExists(usr: string): Promise<boolean> {
   const u = await db.query('SELECT COUNT(username) FROM users WHERE LOWER(username) = LOWER($1);', [usr]);
-  if (u && u[0] && u[0][0] == '1') {
+  if (u && u[0] && u[0][0] === '1') {
     return true;
   }
   return false;
@@ -155,7 +159,7 @@ export async function usernameExists(usr: string): Promise<boolean> {
  */
 export async function emailExists(email: string): Promise<boolean> {
   const u = await db.query('SELECT COUNT(email) FROM users WHERE LOWER(email) = LOWER($1);', [email]);
-  if (u && u[0] && u[0][0] == '1') {
+  if (u && u[0] && u[0][0] === '1') {
     return true;
   }
   return false;
@@ -171,7 +175,7 @@ function passwordCheck(pass: string): boolean {
   let lowercase = false;
   let digit = false;
   let special = false;
-  if (pass.length >= 8) {
+  if (pass.length >= MIN_PASSWORD_LENGTH) {
     for (let i = 0; i < pass.length; i++) {
       const c = pass.charAt(i);
       if (uppercase && lowercase && digit && special && length) {

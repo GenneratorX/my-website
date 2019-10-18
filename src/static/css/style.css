@@ -144,8 +144,12 @@ input.login {
   margin-top: 1rem;
   min-height: 3rem;
   min-width: 17rem;
-  outline: 0;
   padding: 0.1rem 0.5rem 0.1rem 1.5rem;
+}
+
+input.login:focus {
+  box-shadow: 0 0 5px #363636;
+  outline: 0;
 }
 
 input.lRed {
@@ -164,21 +168,29 @@ input.submitB {
   font-weight: 700;
   height: 2em;
   margin-top: 1em;
-  outline: 0;
   padding: 1rem;
   width: 2em;
 }
 
-input:hover[type='submit'] {
+input.submitB:hover {
   background: #09776c;
+}
+
+input.submitB:focus {
+  background: #09776c;
+  outline: 0;
 }
 
 .checkbox-label {
   cursor: pointer;
   font-size: 1.2rem;
   margin-top: 1rem;
-  outline: 0;
   user-select: none;
+}
+
+.checkbox-label:focus {
+  outline: 0;
+  text-shadow: 5px 5px 10px #09776c;
 }
 
 /* ============================== RESPONSIVE TOPBAR ==================== */

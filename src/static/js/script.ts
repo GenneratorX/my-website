@@ -6,7 +6,7 @@
  */
 const links = document.head.getElementsByTagName('link');
 for (let i = links.length - 1; i >= 0; i--) {
-  if (links[i].as == 'style') {
+  if (links[i].as === 'style') {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = links[i].getAttribute('href') as string;
@@ -22,7 +22,7 @@ if (hamburger) {
   const ribbon = document.getElementById('myRibbon') as HTMLElement;
   if (ribbon) {
     hamburger.onclick = function(): void {
-      if (ribbon.className == 'ribbon') {
+      if (ribbon.className === 'ribbon') {
         ribbon.className += ' responsive';
       } else {
         ribbon.className = 'ribbon';

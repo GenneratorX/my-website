@@ -9,6 +9,8 @@ const createAcc = document.getElementById('createAcc') as HTMLAnchorElement;
 const forgotPass = document.getElementById('forgotPass') as HTMLAnchorElement;
 const lText = document.getElementById('lText') as HTMLHeadingElement;
 
+const MIN_PASSWORD_LENGTH = 8;
+
 let repeatBox: HTMLInputElement;
 let emailBox: HTMLInputElement;
 let checkLabel: HTMLLabelElement;
@@ -111,7 +113,7 @@ function userBoxKeyUp(): void {
   if (userRegexp.test(userBox.value)) {
     userBox.className = green;
   } else {
-    if (userBox.value.length != 0) {
+    if (userBox.value.length !== 0) {
       userBox.className = red;
     } else {
       userBox.className = gray;
@@ -120,23 +122,23 @@ function userBoxKeyUp(): void {
 }
 
 function userBoxKeyDown(e: KeyboardEvent): void {
-  if (e.which == 32) {
+  if (e.key === ' ') {
     e.preventDefault();
   }
 }
 
 function userBoxBlur(): void {
   if (repeatBoxEnabled) {
-    if (userBox.className == green) {
+    if (userBox.className === green) {
       fetcH('POST', '/usernameExists', { 'username': userBox.value })
         .then((res) => {
-          if (res['response'] == true) {
+          if (res['response'] === true) {
             userBox.className = red;
           }
         })
         .catch((err) => {
           userBox.className = red;
-          if (err.message == '502') {
+          if (err.message === '502') {
             snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2);
           } else {
             snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
@@ -149,13 +151,13 @@ function userBoxBlur(): void {
 }
 
 function passBoxKeyUp(): void {
-  if (passCheck(passBox.value) == true) {
+  if (passCheck(passBox.value) === true) {
     passBox.className = green;
     if (repeatBoxEnabled) {
       repeatBoxKeyUp();
     }
   } else {
-    if (passBox.value.length != 0) {
+    if (passBox.value.length !== 0) {
       passBox.className = red;
     } else {
       passBox.className = gray;
@@ -167,8 +169,8 @@ function passBoxKeyUp(): void {
 }
 
 function repeatBoxKeyUp(): void {
-  if (passBox.className == green) {
-    if (passBox.value == repeatBox.value) {
+  if (passBox.className === green) {
+    if (passBox.value === repeatBox.value) {
       repeatBox.className = green;
     } else {
       repeatBox.className = red;
@@ -182,7 +184,7 @@ function emailBoxKeyUp(): void {
   if (emailRegexp.test(emailBox.value)) {
     emailBox.className = green;
   } else {
-    if (emailBox.value.length != 0) {
+    if (emailBox.value.length !== 0) {
       emailBox.className = red;
     } else {
       emailBox.className = gray;
@@ -191,16 +193,16 @@ function emailBoxKeyUp(): void {
 }
 
 function emailBoxBlur(): void {
-  if (emailBox.className == green) {
+  if (emailBox.className === green) {
     fetcH('POST', '/emailExists', { 'email': emailBox.value })
       .then((res) => {
-        if (res['response'] == true) {
+        if (res['response'] === true) {
           emailBox.className = red;
         }
       })
       .catch((err) => {
         emailBox.className = red;
-        if (err.message == '502') {
+        if (err.message === '502') {
           snackbar('Nu s-a putut realiza conexiunea la server. Încearcă mai târziu!', 2);
         } else {
           snackbar('Ceva nu a mers bine. Încearcă mai târziu!', 2);
@@ -210,17 +212,17 @@ function emailBoxBlur(): void {
 }
 
 function emailBoxKeyDown(e: KeyboardEvent): void {
-  if (e.which == 32) {
+  if (e.key === ' ') {
     e.preventDefault();
   }
 }
 
 submitForm.addEventListener('submit', function(e) {
-  if (userBox.className == green) {
-    if (passBox.className == green) {
+  if (userBox.className === green) {
+    if (passBox.className === green) {
       if (repeatBoxEnabled) {
-        if (repeatBox.className == green) {
-          if (emailBox.className == green) {
+        if (repeatBox.className === green) {
+          if (emailBox.className === green) {
             fetcH('POST', '/createUser', {
               'username': userBox.value,
               'password': passBox.value,
@@ -267,7 +269,7 @@ submitForm.addEventListener('submit', function(e) {
             }
           }
         } else {
-          if (repeatBox.value != passBox.value) {
+          if (repeatBox.value !== passBox.value) {
             snackbar('Parolele trebuie să fie identice!', 2);
           }
         }
@@ -348,7 +350,7 @@ function passCheck(pass: string): true | boolean[] {
   let lowercase = false;
   let digit = false;
   let special = false;
-  if (pass.length >= 8) {
+  if (pass.length >= MIN_PASSWORD_LENGTH) {
     length = true;
     for (let i = 0; i < pass.length; i++) {
       const c = pass.charAt(i);
