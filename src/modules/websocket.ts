@@ -36,11 +36,16 @@ class WsRoom {
    * Anonymous username numbers from users that left the room
    */
   private usedNumbers: number[];
+  /**
+   * List that contains all the users that have currently buffered the current video
+   */
+  private readyCheckList: WebSocket[];
 
   constructor(ws: WebSocket, name?: string, color?: string) {
     this.videoList = [];
     this.currentVideo = '';
     this.usedNumbers = [];
+    this.readyCheckList = [];
 
     let username: string;
     let usernameColor: string;
@@ -235,6 +240,17 @@ class WsRoom {
   }
 
   /**
+   * Pauses the playback of the current video
+   */
+  pauseCurrentVideo(): void {
+    if (this.currentVideo !== '') {
+      this.sendMessage({
+        event: 'ytPauseVideo',
+      }, 'allExceptSpecificUser', this.roomMaster);
+    }
+  }
+
+  /**
    * Gets a user info based on a WebSocket object
    * @param ws WebSocket object of the user
    * @return Object containing user properties if the user exists, placeholder object otherwise
@@ -256,6 +272,20 @@ class WsRoom {
     this.sendMessage({
       event: 'roomMaster',
     }, 'specificUser', this.roomMaster);
+  }
+
+  /**
+   * Mark specific user as ready and start video playback when everyone is ready
+   * @param ws WebSocket object of the user
+   */
+  readyCheck(ws: WebSocket): void {
+    this.readyCheckList.push(ws);
+    if (this.readyCheckList.length === this.userList.length) {
+      this.sendMessage({
+        event: 'ytPlayVideo',
+      }, 'all');
+      this.readyCheckList = [];
+    }
   }
 
   /**
@@ -387,14 +417,10 @@ wss.on('connection', (ws: MyWS) => {
           room.playCurrentVideo();
           break;
         case 'ytStartVideoReady':
-          // Do the video ready check here!
-          /*readyCheck.push(currentUser.name);
-          if (readyCheck.length === wss.clients.size) {
-            readyCheck = [];
-            wsSendMessage('all', {
-              event: 'ytPlayVideo',
-            });
-          }*/
+          room.readyCheck(ws);
+          break;
+        case 'ytPauseVideo':
+          room.pauseCurrentVideo();
           break;
       }
     }

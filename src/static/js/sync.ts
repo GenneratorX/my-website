@@ -131,6 +131,7 @@ class SyncRoom {
     } else {
       player.destroy();
     }
+    videoInit = false;
   }
 
   /**
@@ -283,6 +284,9 @@ function handleMessage(message: string): void {
     case 'ytPlayVideo':
       player.playVideo();
       break;
+    case 'ytPauseVideo':
+      player.pauseVideo();
+      break;
   }
 }
 
@@ -363,13 +367,13 @@ function videoListAdd(videoID: string): void {
   setAttributes(videoThumbnail, { 'class': 'videoThumbnail' });
   setAttributes(videoThumbnailSource, {
     'type': 'image/webp',
-    'srcset': `https://i.ytimg.com/vi_webp/${videoID}/default.webp`,
+    'srcset': `https://i.ytimg.com/vi_webp/${videoID}/mqdefault.webp`,
   });
   setAttributes(videoThumbnailImg, {
     'alt': 'Video thumbnail',
-    'src': `https://i.ytimg.com/vi/${videoID}/default.jpg`,
-    'height': '90',
-    'width': '120',
+    'src': `https://i.ytimg.com/vi/${videoID}/mqdefault.jpg`,
+    'height': '180',
+    'width': '320',
   });
   videoDelete.textContent = 'X';
 
@@ -431,6 +435,7 @@ function cueVideo(videoID: string): void {
       'width': '100%',
       'height': '100%',
       'allowfullscreen': '',
+      'allow': 'accelerometer; autoplay; encrypted-media; gyroscope',
       'id': 'player',
       'src': `https://www.youtube.com/embed/${videoID}?origin=https://gennerator.com&enablejsapi=1&start=0`,
     });
@@ -481,18 +486,59 @@ function onPlayerReady(): void {
 
 function onPlayerStateChange(event: YT.OnStateChangeEvent): void {
   console.log('Player status: ' + event.data);
-  if (!videoInit) {
-    /*if (event.data == -1 && roomMaster) {
-      ws.send(JSON.stringify({
-        'event': 'ytStartVideo',
-      }));
-    }*/
-    if (event.data === 1) {
-      player.pauseVideo();
-      videoInit = true;
-      ws.send(JSON.stringify({
-        'event': 'ytStartVideoReady',
-      }));
+  if (room.isMaster === true) {
+    switch (event.data) {
+      case YT.PlayerState.UNSTARTED:
+        if (!videoInit) {
+          ws.send(JSON.stringify({
+            'event': 'ytStartVideo',
+          }));
+        }
+        break;
+      case YT.PlayerState.ENDED: break;
+      case YT.PlayerState.PLAYING:
+        if (!videoInit) {
+          player.pauseVideo();
+          videoInit = true;
+          ws.send(JSON.stringify({
+            'event': 'ytStartVideoReady',
+          }));
+        } else {
+          ws.send(JSON.stringify({
+            'event': 'ytStartVideo',
+          }));
+        }
+        break;
+      case YT.PlayerState.PAUSED:
+        /*if (videoInit) {
+          ws.send(JSON.stringify({
+            'event': 'ytPauseVideo',
+          }));
+        }*/
+        break;
+      case YT.PlayerState.BUFFERING: break;
+      case YT.PlayerState.CUED: break;
+    }
+  } else {
+    switch (event.data) {
+      case YT.PlayerState.UNSTARTED:
+        break;
+      case YT.PlayerState.ENDED: break;
+      case YT.PlayerState.PLAYING:
+        if (!videoInit) {
+          player.pauseVideo();
+          videoInit = true;
+          ws.send(JSON.stringify({
+            'event': 'ytStartVideoReady',
+          }));
+        }
+        break;
+      case YT.PlayerState.PAUSED:
+        break;
+      case YT.PlayerState.BUFFERING:
+        break;
+      case YT.PlayerState.CUED:
+        break;
     }
   }
 }
