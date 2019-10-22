@@ -1,5 +1,7 @@
 'use strict';
 
+const WSS = `wss://${document.location.hostname}/ws`;
+
 const videoPlayerDiv = document.getElementById('video-player') as HTMLDivElement;
 const videoListDiv = document.getElementById('videoList') as HTMLDivElement;
 const youtubeLinkInput = document.getElementById('youtubeLink') as HTMLInputElement;
@@ -175,7 +177,7 @@ let player: YT.Player;
  * Connect to the WebSocket Server
  */
 function connect(): void {
-  ws = new WebSocket('wss://gennerator.com/ws');
+  ws = new WebSocket(WSS);
   let interval: NodeJS.Timeout;
 
   ws.onopen = function(): void {

@@ -6,6 +6,7 @@ import WebSocket = require('ws');
 import { Server as WSServer } from 'ws';
 
 import { server } from '../app';
+import * as env from '../env';
 
 const wss = new WSServer({ path: '/ws', maxPayload: 200, noServer: true });
 
@@ -440,7 +441,7 @@ wss.on('connection', (ws: MyWS) => {
 });
 
 server.on('upgrade', function(req, socket, head) {
-  if (req.headers.origin !== undefined && req.headers.origin === 'https://gennerator.com') {
+  if (req.headers.origin !== undefined && req.headers.origin === env.ORIGIN) {
     wss.handleUpgrade(req, socket, head, function(ws) {
       wss.emit('connection', ws, req);
     });
