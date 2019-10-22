@@ -1,9 +1,9 @@
 .sync {
   display: grid;
-  grid-template: repeat(8, minmax(0, 1fr)) / repeat(7, minmax(0, 1fr));
+  grid-template: repeat(10, minmax(0, 1fr)) / repeat(12, minmax(0, 1fr));
   height: 100%;
-  margin: 0.5em;
   overflow: auto;
+  padding: 0.5em;
 }
 
 .section-label {
@@ -19,7 +19,7 @@
   color: #fff;
   display: flex;
   flex-direction: column;
-  grid-area: 1 / 1 / 9 / 2;
+  grid-area: 1 / 1 / 11 / 3;
   margin-right: 0.5em;
 }
 
@@ -63,7 +63,7 @@
 .video-player {
   background: #323232 url('/img/svg/youtube.svg') no-repeat center;
   background-size: 50%;
-  grid-area: 1 / 2 / 7 / 7;
+  grid-area: 1 / 3 / 9 / 11;
   margin-bottom: 0.5em;
 }
 
@@ -71,7 +71,7 @@
   border: 2px #363636 solid;
   display: flex;
   flex-direction: column;
-  grid-area: 7 / 2 / 9 / 5;
+  grid-area: 9 / 3 / 11 / 8;
   margin-right: 0.5em;
 }
 
@@ -87,7 +87,7 @@
   border: 2px #363636 solid;
   display: flex;
   flex-direction: column;
-  grid-area: 7 / 5 / 9 / 7;
+  grid-area: 9 / 8 / 11 / 11;
 }
 
 .chatUsers {
@@ -99,7 +99,7 @@
   color: #fff;
   display: flex;
   flex-direction: column;
-  grid-area: 1 / 7 / 8 / 8;
+  grid-area: 1 / 11 / 10 / 13;
   margin-left: 0.5em;
 }
 
@@ -111,7 +111,7 @@
 }
 
 .chat-messageBox {
-  grid-area: 8 / 7 / 9 / 8;
+  grid-area: 10 / 11 / 11 / 13;
   margin-left: 0.5em;
   margin-top: 0.5em;
 }
@@ -119,7 +119,7 @@
 .messageBox {
   background-color: #232323;
   border: 2px #363636 solid;
-  border-radius: 15px;
+  border-radius: 10px;
   color: #fff;
   font-family: 'Raleway', Arial, sans-serif;
   font-size: 1rem;
@@ -143,4 +143,100 @@
 .stretch {
   height: 100%;
   width: 100%;
+}
+
+@media screen and (max-width: 1024px) {
+  .sync {
+    /* grid-template: repeat(12, minmax(0, 1fr)) / repeat(6, minmax(0, 1fr)); */
+    grid-template:
+      /* ROWS */
+      /* Video player */
+      repeat(6, minmax(5em, 1fr))
+      /* Video controls */
+      repeat(2, minmax(3em, 1fr))
+      /* Chat */
+      repeat(4, minmax(5em, 1fr))
+      /* Chat messagebox */
+      minmax(3.4em, 1fr)
+      /* User list */
+      repeat(2, minmax(5.3em, 1fr))
+      /* Video list */
+      repeat(5, minmax(6em, 1fr)) /
+      /* COLUMNS */
+      repeat(6, minmax(0, 1fr));
+  }
+
+  .video-list {
+    grid-area: 8 / 1 / 13 / 4;
+    margin-right: 0;
+    margin-top: 0.5em;
+  }
+
+  .video-player {
+    grid-area: 1 / 1 / 6 / 7;
+  }
+
+  .video-controls {
+    grid-area: 6 / 1 / 8 / 5;
+  }
+
+  .chat-users {
+    grid-area: 6 / 5 / 8 / 7;
+  }
+
+  .chat {
+    grid-area: 8 / 4 / 12 / 7;
+    margin-top: 0.5em;
+  }
+
+  .chat-messageBox {
+    grid-area: 12 / 4 / 13 / 7;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .sync {
+    grid-template:
+      /* Video player */
+      repeat(3, minmax(5em, 1fr))
+      /* Video controls */
+      repeat(2, minmax(3em, 1fr))
+      /* Chat */
+      repeat(3, minmax(5em, 1fr))
+      /* Chat messagebox */
+      minmax(3.4em, 1fr)
+      /* User list */
+      repeat(2, minmax(5.3em, 1fr))
+      /* Video list */
+      repeat(3, minmax(6em, 1fr)) / minmax(0, 1fr);
+  }
+
+  .video-list {
+    grid-area: 12 / 1 / 15 / 2;
+    margin-bottom: 0.5em;
+  }
+
+  .video-player {
+    grid-area: 1 / 1 / 4 / 2;
+  }
+
+  .video-controls {
+    grid-area: 4 / 1 / 6 / 2;
+    margin-right: 0;
+  }
+
+  .chat-users {
+    grid-area: 10 / 1 / 12 / 2;
+    margin-top: 0.5em;
+  }
+
+  .chat {
+    grid-area: 6 / 1 / 9 / 2;
+    margin-left: 0;
+  }
+
+  .chat-messageBox {
+    grid-area: 9 / 1 / 10 / 2;
+    margin-left: 0;
+  }
 }
