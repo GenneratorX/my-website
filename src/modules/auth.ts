@@ -178,7 +178,7 @@ function passwordCheck(pass: string): boolean {
   if (pass.length >= MIN_PASSWORD_LENGTH) {
     for (let i = 0; i < pass.length; i++) {
       const c = pass.charAt(i);
-      if (uppercase && lowercase && digit && special && length) {
+      if (uppercase && lowercase && digit && special) {
         return true;
       } else {
         if (!uppercase && c >= 'A' && c <= 'Z') {
