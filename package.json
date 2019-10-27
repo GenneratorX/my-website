@@ -42,7 +42,7 @@
     "nodemailer-express-handlebars": "^3.1.0",
     "pg": "^7.12.1",
     "rate-limiter-flexible": "^1.1.6",
-    "ws": "^7.1.2"
+    "ws": "^7.2.0"
   },
   "devDependencies": {
     "@types/connect-redis": "0.0.11",
@@ -52,15 +52,15 @@
     "@types/google-closure-compiler": "0.0.18",
     "@types/html-minifier": "^3.5.3",
     "@types/ioredis": "^4.0.18",
-    "@types/nodemailer": "^6.2.1",
+    "@types/nodemailer": "^6.2.2",
     "@types/pg": "^7.11.2",
     "@types/ws": "^6.0.3",
     "@types/youtube": "0.0.38",
-    "@typescript-eslint/eslint-plugin": "^2.4.0",
-    "@typescript-eslint/parser": "^2.4.0",
+    "@typescript-eslint/eslint-plugin": "^2.5.0",
+    "@typescript-eslint/parser": "^2.5.0",
     "chokidar": "^3.2.2",
     "crass": "^0.12.3",
-    "eslint": "^6.5.1",
+    "eslint": "^6.6.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-node": "^10.0.0",

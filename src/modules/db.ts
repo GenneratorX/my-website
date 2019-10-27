@@ -1,7 +1,10 @@
 'use strict';
 
 import pg = require('pg');
-const pool = new pg.Pool({ host: '/var/run/postgresql', max: 50 });
+
+import * as env from '../env';
+
+const pool = new pg.Pool(env.PG_CONFIG);
 
 /**
  * Querries the database

@@ -46,7 +46,7 @@ app.use(bodyParser.json({
   type: 'application/json',
 }));
 
-const client = new Redis({ enableOfflineQueue: false });
+const client = new Redis(env.REDIS_CONFIG);
 
 app.use(session({ // lgtm [js/missing-token-validation]
   name: '__Host-sessionID',
@@ -152,10 +152,9 @@ app.get('/partajare', function(req, res) {
 
 app.get('/sync', function(req, res) {
   res.setHeader('Content-Security-Policy',
-    `default-src 'none'; base-uri 'none'; connect-src 'self' wss://gennerator.com/ws ` +
-    `https://noembed.com/embed; font-src 'self'; form-action 'self'; frame-ancestors 'none'; ` +
-    `frame-src https://www.youtube.com/embed/; img-src 'self' https://i.ytimg.com; manifest-src 'self'; ` +
-    `media-src 'self'; object-src 'none'; ` +
+    `default-src 'none'; base-uri 'none'; connect-src 'self' ${env.WSS} https://noembed.com/embed; font-src 'self'; ` +
+    `form-action 'self'; frame-ancestors 'none'; frame-src https://www.youtube.com/embed/; ` +
+    `img-src 'self' https://i.ytimg.com; manifest-src 'self'; media-src 'self'; object-src 'none'; ` +
     `report-to default; report-uri https://gennerator.report-uri.com/r/d/csp/enforce; ` +
     `script-src 'strict-dynamic' 'nonce-${res.locals.nonce}'; style-src 'self' 'nonce-${res.locals.nonce}'`
   );
