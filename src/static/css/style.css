@@ -7,22 +7,6 @@
   word-spacing: -1.95px;
 }
 
-@font-face {
-  font-display: swap;
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 200;
-  src: local('Raleway ExtraLight'), local('Raleway-ExtraLight'), url(/fonts/f1.woff2) format('woff2');
-}
-
-@font-face {
-  font-display: swap;
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 700;
-  src: local('Raleway Bold'), local('Raleway-Bold'), url(/fonts/f2.woff2) format('woff2');
-}
-
 * {
   box-sizing: border-box;
   margin: 0;
