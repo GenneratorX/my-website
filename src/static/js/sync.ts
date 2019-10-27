@@ -1,6 +1,7 @@
 'use strict';
 
 const WSS = `wss://${document.location.hostname}/ws`;
+const originURL = document.location.origin;
 
 const videoPlayerDiv = document.getElementById('video-player') as HTMLDivElement;
 const videoListDiv = document.getElementById('videoList') as HTMLDivElement;
@@ -439,7 +440,7 @@ function cueVideo(videoID: string): void {
       'allowfullscreen': '',
       'allow': 'accelerometer; autoplay; encrypted-media; gyroscope',
       'id': 'player',
-      'src': `https://www.youtube.com/embed/${videoID}?origin=https://gennerator.com&enablejsapi=1&start=0`,
+      'src': `https://www.youtube.com/embed/${videoID}?origin=${originURL}&enablejsapi=1&start=0`,
     });
     playerFrame.onload = function(): void {
       player = new YT.Player('player', {
