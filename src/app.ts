@@ -119,36 +119,23 @@ app.use(function(req, res, next) {
     res.locals.userName = req.session.username;
     res.locals.greetingMessage = util.greetingMessage();
   }
-  res.locals.pageURL = req.originalUrl;
   next();
 });
 
 app.get('/', function(req, res) {
-  res.render('index', {
-    pageTitle: 'Acasă',
-    pageDescription: 'Site realizat de mine pentru a satisface nevoile mele. Copyright Gennerator.',
-  });
+  res.render('index');
 });
 
 app.get('/filme', function(req, res) {
-  res.render('filme', {
-    pageTitle: 'Filme',
-    pageDescription: 'Evidență filme vizualizate, statistici și informații detaliate despre fiecare film.',
-  });
+  res.render('filme');
 });
 
 app.get('/muzica', function(req, res) {
-  res.render('muzica', {
-    pageTitle: 'Muzică',
-    pageDescription: 'Player audio pentru melodiile personale, playlist-uri și organizare melodii.',
-  });
+  res.render('muzica');
 });
 
 app.get('/partajare', function(req, res) {
-  res.render('partajare', {
-    pageTitle: 'Partajare',
-    pageDescription: 'Partajare privată de fișiere, încărcare și organizare fișiere personale.',
-  });
+  res.render('partajare');
 });
 
 app.get('/sync', function(req, res) {
@@ -167,10 +154,7 @@ app.get('/sync', function(req, res) {
     `midi 'none'; payment 'none'; speaker 'self'; sync-xhr 'none'; usb 'none'; vr 'none'`
   );
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.render('sync', {
-    pageTitle: 'Youtube Sync',
-    pageDescription: 'Vizualizare conținut YouTube în grup',
-  });
+  res.render('sync');
 });
 
 app.get('/activate', function(req, res) {
@@ -195,10 +179,7 @@ app.get('/activate', function(req, res) {
 
 app.get('/login', function(req, res) {
   if (!res.locals.userName) {
-    res.render('login', {
-      pageTitle: 'Login',
-      pageDescription: 'Autentificare utilizator, creare cont utilizator și recuperare credențiale.',
-    });
+    res.render('login');
   } else {
     res.redirect('/');
   }
@@ -309,8 +290,5 @@ app.post('/emailExists', function(req, res) {
 });
 
 app.use(function(req, res) {
-  res.status(404).render('404', {
-    pageTitle: 'Nimic aici',
-    pageDescription: 'Resursa accesată nu există',
-  });
+  res.status(404).render('404');
 });

@@ -185,7 +185,7 @@ input.submitB:focus {
 
 .ham {
   padding: 0.8rem;
-  width: 3.188rem;
+  width: 3.125rem;
 }
 
 @media screen and (max-width: 576px) {
