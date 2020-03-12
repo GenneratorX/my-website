@@ -1,6 +1,6 @@
 'use strict';
 
-const WSS = `wss://master.gennerator.com/ws`;
+const WSS = `wss://${document.location.hostname}/ws`;
 const originURL = document.location.origin;
 
 const videoPlayerDiv = document.getElementById('video-player') as HTMLDivElement;

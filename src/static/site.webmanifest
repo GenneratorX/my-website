@@ -1,7 +1,7 @@
 {
   "name": "Siteul lu' Gennerator",
   "short_name": "Siteul lu' Gennerator",
-  "start_url": "https://master.gennerator.com",
+  "start_url": ".",
   "orientation": "any",
   "theme_color": "#363636",
   "background_color": "#232323",
